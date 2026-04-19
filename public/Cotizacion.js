@@ -317,9 +317,15 @@ ${commercialNotes ? `
 
 // ========== NUEVA COTIZACIÓN ==========
 function newQuote() {
+
+  // 🔥 GUARDAR ANTES DE LIMPIAR
+  saveNow();
+
   items.length = 0;
+
   initializeQuoteNumber();
   document.getElementById('quote_date').value = new Date().toISOString().slice(0, 10);
+
   document.getElementById('client_name').value = '';
   document.getElementById('client_ruc').value = '';
   document.getElementById('client_address').value = '';
@@ -327,10 +333,36 @@ function newQuote() {
   document.getElementById('client_phone').value = '';
   document.getElementById('client_email').value = '';
 
-  // 🔥 IMPORTANTE
-  document.getElementById('commercial_notes').value = localStorage.getItem('terms') || DEFAULT_TERMS;
+  document.getElementById('commercial_notes').value =
+    localStorage.getItem('terms') || DEFAULT_TERMS;
 
   renderItemsTable();
+}
+
+function saveNow() {
+  const data = {
+    company_name: document.getElementById('company_name')?.value || '',
+    quote_number: document.getElementById('quote_number')?.value || '',
+    client_name: document.getElementById('client_name')?.value || '',
+    items: items,
+    totals: calculateTotals()
+  };
+
+  fetch('/save', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      quote_number: data.quote_number,
+      company_name: data.company_name,
+      client_name: data.client_name,
+      total: data.totals.total,
+      items: data.items
+    })
+  })
+  .then(() => console.log("Guardado manual ✔"))
+  .catch(err => console.error(err));
 }
 
   // ========== EVENTOS ==========
@@ -489,3 +521,11 @@ document.addEventListener('DOMContentLoaded', function() {
   updateTotalsPreview();
   renderItemsTable();
 });
+
+function autoSave() {
+  clearTimeout(saveTimeout);
+
+  saveTimeout = setTimeout(() => {
+    saveNow(); // reutilizamos tu función buena
+  }, 800);
+}

@@ -53,9 +53,9 @@ app.post('/save', async (req, res) => {
     res.json({ ok: true });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al guardar' });
-  }
+  console.error("ERROR REAL:", err);
+  res.status(500).json({ error: err.message });
+}
 });
 
 // ===== LISTAR =====
