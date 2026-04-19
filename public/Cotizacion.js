@@ -1,3 +1,31 @@
+function customConfirm({ icon = '❓', title = '¿Estás seguro?', msg = '', okClass = 'danger', okText = 'Confirmar' } = {}) {
+  return new Promise(resolve => {
+    const overlay = document.getElementById('confirm_modal');
+    document.getElementById('confirm_icon').textContent = icon;
+    document.getElementById('confirm_title').textContent = title;
+    document.getElementById('confirm_msg').textContent = msg;
+
+    const okBtn = document.getElementById('confirm_ok');
+    okBtn.textContent = okText;
+    okBtn.className = `btn ${okClass}`;
+
+    overlay.classList.remove('hidden');
+
+    const cleanup = (result) => {
+      overlay.classList.add('hidden');
+      const newOk = okBtn.cloneNode(true);
+      okBtn.replaceWith(newOk);
+      const cancelBtn = document.getElementById('confirm_cancel');
+      const newCancel = cancelBtn.cloneNode(true);
+      cancelBtn.replaceWith(newCancel);
+      resolve(result);
+    };
+
+    document.getElementById('confirm_ok').addEventListener('click', () => cleanup(true));
+    document.getElementById('confirm_cancel').addEventListener('click', () => cleanup(false));
+  });
+}
+
 let items = [];
 const LOGO_PATH = '/imagenes/Recurso 43.png';
 const QUOTE_START_NUMBER = 3000;
@@ -109,9 +137,9 @@ function renderItemsTable() {
   
   updateTotalsPreview();
   
-if (document.getElementById('auto_update')?.checked) {
-  requestAnimationFrame(generatePreview);
-}
+  if (document.getElementById('auto_update')?.checked) {
+    requestAnimationFrame(generatePreview);
+  }
 }
 
 function calculateTotals() {
@@ -187,7 +215,6 @@ function generatePreview() {
   }
 
   document.getElementById('preview').innerHTML = `
-    <!-- Header con Logo, Info Empresa y Cotización -->
     <div class="header-top">
       <div class="company-section">
         <img src="${LOGO_PATH}" alt="NOVOTRACE" class="company-logo" />
@@ -205,7 +232,6 @@ function generatePreview() {
       </div>
     </div>
 
-    <!-- Tabla de Datos del Cliente -->
     <table class="client-data-table">
       <tbody>
         <tr>
@@ -233,7 +259,6 @@ function generatePreview() {
       </tbody>
     </table>
 
-    <!-- Tabla de Productos -->
     <div class="items-section">
       <table class="items">
         <thead>
@@ -247,7 +272,6 @@ function generatePreview() {
         <tbody>${itemsHtml}</tbody>
       </table>
       
-      <!-- Totales -->
       <div class="totals-box">
         <div class="total-row">
           <span>Subtotal</span>
@@ -281,7 +305,6 @@ ${commercialNotes ? `
   <p style="margin-top:12px"><strong>Validez de la oferta:</strong> ${validityDays} días desde la fecha de emisión.</p>
 </div>`}
 
-<!-- Medios de Pago -->
 <div class="payment-display">
   <h3>Cuentas para pagos:</h3>
   <table class="payment-table">
@@ -317,7 +340,7 @@ ${commercialNotes ? `
 
 // ========== NUEVA COTIZACIÓN ==========
 function newQuote() {
-  saveNow(); // guarda UNA sola vez
+  saveNow();
 
   items.length = 0;
 
@@ -330,6 +353,8 @@ function newQuote() {
   document.getElementById('client_city').value = '';
   document.getElementById('client_phone').value = '';
   document.getElementById('client_email').value = '';
+
+  renderItemsTable();
 }
 
 function saveNow() {
@@ -354,7 +379,7 @@ function saveNow() {
   .catch(err => console.error(err));
 }
 
-  // ========== EVENTOS ==========
+// ========== EVENTOS ==========
 document.addEventListener('DOMContentLoaded', function() {
   const itemsBody = document.getElementById('items_body');
 
@@ -393,8 +418,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('auto_update')?.checked) {
       generatePreview();
     }
-
-    //autoSave();
   });
 
   itemsBody.addEventListener('click', function(e) {
@@ -416,8 +439,16 @@ document.addEventListener('DOMContentLoaded', function() {
     renderItemsTable();
   });
 
-  document.getElementById('clear_items').addEventListener('click', () => {
-    if (confirm('¿Eliminar todos los items?')) {
+  // ✅ LIMPIAR ITEMS — customConfirm
+  document.getElementById('clear_items').addEventListener('click', async () => {
+    const ok = await customConfirm({
+      icon: '🧹',
+      title: '¿Eliminar todos los items?',
+      msg: 'Se borrarán todos los productos de esta cotización.',
+      okClass: 'danger',
+      okText: 'Eliminar todo'
+    });
+    if (ok) {
       items.length = 0;
       renderItemsTable();
     }
@@ -437,7 +468,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (document.getElementById('auto_update').checked) {
           generatePreview();
         }
-        //autoSave();
       });
     }
   });
@@ -449,14 +479,20 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => window.print(), 300);
   });
 
-  document.getElementById('new_quote_btn').addEventListener('click', () => {
-    if (confirm('¿Crear nueva cotización?')) {
-      newQuote();
-    }
+  // ✅ NUEVA COTIZACIÓN — customConfirm
+  document.getElementById('new_quote_btn').addEventListener('click', async () => {
+    const ok = await customConfirm({
+      icon: '📄',
+      title: '¿Crear nueva cotización?',
+      msg: 'Se guardará la actual y se limpiará el formulario.',
+      okClass: 'success-confirm',
+      okText: 'Crear nueva'
+    });
+    if (ok) newQuote();
   });
 
   // =========================
-  // ✅ HISTORIAL (ARREGLADO)
+  // ✅ HISTORIAL
   // =========================
   document.getElementById('history_btn').addEventListener('click', () => {
     fetch('/quotes')
@@ -470,7 +506,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!history.length) {
           body.innerHTML = `
             <tr>
-              <td colspan="8" style="text-align:center;padding:20px;color:#999">
+              <td colspan="9" style="text-align:center;padding:20px;color:#999">
                 No hay cotizaciones guardadas
               </td>
             </tr>
@@ -497,10 +533,17 @@ document.addEventListener('DOMContentLoaded', function() {
             body.appendChild(tr);
           });
 
-          // Listeners de eliminar
+          // ✅ ELIMINAR COTIZACIÓN — customConfirm
           body.querySelectorAll('.delete-quote-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-              if (!confirm('¿Eliminar esta cotización?')) return;
+            btn.addEventListener('click', async () => {
+              const ok = await customConfirm({
+                icon: '🗑️',
+                title: '¿Eliminar cotización?',
+                msg: 'Esta acción no se puede deshacer.',
+                okClass: 'danger',
+                okText: 'Eliminar'
+              });
+              if (!ok) return;
               fetch(`/quotes/${btn.dataset.id}`, { method: 'DELETE' })
                 .then(res => res.json())
                 .then(() => btn.closest('tr').remove())
@@ -514,7 +557,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .catch(err => console.error(err));
   });
 
-  // ✅ BOTÓN CERRAR
+  // ✅ BOTÓN CERRAR HISTORIAL
   document.getElementById('close_history').addEventListener('click', () => {
     document.getElementById('history_modal').classList.add('hidden');
   });
