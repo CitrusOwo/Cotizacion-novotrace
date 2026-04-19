@@ -486,7 +486,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <td>${q.client_email || '-'}</td>
               <td>${q.client_phone || '-'}</td>
               <td>${q.client_city || '-'}</td>
-              <td>${new Date(q.quote_date || Date.now()).toLocaleDateString()}</td>
+              <td>${new Date(q.created_at || Date.now()).toLocaleDateString('es-PE')}</td>
               <td>${formatMoney(q.total || 0, getCurrency())}</td>
             `;
 

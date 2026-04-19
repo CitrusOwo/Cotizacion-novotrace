@@ -73,7 +73,10 @@ app.post('/save', async (req, res) => {
 app.get('/quotes', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT * FROM quotes ORDER BY id DESC`
+      `SELECT id, quote_number, company_name, client_name, 
+              client_ruc, client_email, client_phone, client_city, 
+              total, created_at
+       FROM quotes ORDER BY id DESC`
     );
     res.json(result.rows);
   } catch (err) {
