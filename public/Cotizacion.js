@@ -334,27 +334,23 @@ function newQuote() {
 
 function saveNow() {
   const data = {
-    company_name: document.getElementById('company_name')?.value || '',
     quote_number: document.getElementById('quote_number')?.value || '',
+    company_name: document.getElementById('company_name')?.value || '',
     client_name: document.getElementById('client_name')?.value || '',
-    items: items,
-    totals: calculateTotals()
+    client_ruc: document.getElementById('client_ruc')?.value || '',
+    client_email: document.getElementById('client_email')?.value || '',
+    client_phone: document.getElementById('client_phone')?.value || '',
+    client_city: document.getElementById('client_city')?.value || '',
+    total: calculateTotals().total,
+    items: items
   };
 
   fetch('/save', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      quote_number: data.quote_number,
-      company_name: data.company_name,
-      client_name: data.client_name,
-      total: data.totals.total,
-      items: data.items
-    })
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
   })
-  .then(() => console.log("Guardado manual ✔"))
+  .then(() => console.log("Guardado ✔"))
   .catch(err => console.error(err));
 }
 

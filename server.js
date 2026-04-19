@@ -31,13 +31,24 @@ app.get('/test-db', async (req, res) => {
 // ===== GUARDAR =====
 app.post('/save', async (req, res) => {
   try {
-    const { quote_number, company_name, client_name, total, items } = req.body;
+    const {
+      quote_number,
+      company_name,
+      client_name,
+      client_ruc,
+      client_email,
+      client_phone,
+      client_city,
+      total,
+      items
+    } = req.body;
 
     const result = await pool.query(
-      `INSERT INTO quotes (quote_number, company_name, client_name, total)
-       VALUES ($1,$2,$3,$4)
-       RETURNING id`,
-      [quote_number, company_name, client_name, total || 0]
+      `INSERT INTO quotes 
+      (quote_number, company_name, client_name, client_ruc, client_email, client_phone, client_city, total)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      RETURNING id`,
+      [quote_number, company_name, client_name, client_ruc, client_email, client_phone, client_city, total]
     );
 
     const quoteId = result.rows[0].id;
@@ -53,9 +64,9 @@ app.post('/save', async (req, res) => {
     res.json({ ok: true });
 
   } catch (err) {
-  console.error("ERROR REAL:", err);
-  res.status(500).json({ error: err.message });
-}
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ===== LISTAR =====
