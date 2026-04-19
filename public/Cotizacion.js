@@ -334,65 +334,63 @@ function newQuote() {
 }
 
   // ========== EVENTOS ==========
-  document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
   const itemsBody = document.getElementById('items_body');
-  
+
   initializeQuoteNumber();
   document.getElementById('quote_date').value = new Date().toISOString().slice(0, 10);
 
-  // 🔥 cargar términos guardados o default
   const savedTerms = localStorage.getItem('terms');
   document.getElementById('commercial_notes').value = savedTerms || DEFAULT_TERMS;
 
-  // 🔥 guardar automáticamente
   document.getElementById('commercial_notes').addEventListener('input', (e) => {
-  localStorage.setItem('terms', e.target.value);
+    localStorage.setItem('terms', e.target.value);
   });
-  
-itemsBody.addEventListener('input', function(e) {
-  const el = e.target;
 
-  const id = el.dataset.id;
-  const field = el.dataset.field;
-  if (!field) return;
+  // ===== ITEMS =====
+  itemsBody.addEventListener('input', function(e) {
+    const el = e.target;
+    const id = el.dataset.id;
+    const field = el.dataset.field;
+    if (!field) return;
 
-  const item = items.find(i => i.id === id);
-  if (!item) return;
+    const item = items.find(i => i.id === id);
+    if (!item) return;
 
-  item[field] = field === 'desc' ? el.value : Number(el.value);
+    item[field] = field === 'desc' ? el.value : Number(el.value);
 
-  const row = el.closest('tr');
-  const totalCell = row.querySelector('.total-cell');
+    const row = el.closest('tr');
+    const totalCell = row.querySelector('.total-cell');
 
-  totalCell.textContent = formatMoney(
-    (item.qty || 0) * (item.price || 0),
-    getCurrency()
-  );
+    totalCell.textContent = formatMoney(
+      (item.qty || 0) * (item.price || 0),
+      getCurrency()
+    );
 
-updateTotalsPreview();
+    updateTotalsPreview();
 
-if (document.getElementById('auto_update')?.checked) {
-  generatePreview();
-}
+    if (document.getElementById('auto_update')?.checked) {
+      generatePreview();
+    }
 
-autoSave();
-});
-  
+    autoSave();
+  });
+
   itemsBody.addEventListener('click', function(e) {
-  const btn = e.target.closest('button');
-  if (!btn) return;
+    const btn = e.target.closest('button');
+    if (!btn) return;
 
-  const id = btn.dataset.id;
-  items = items.filter(i => i.id !== id);
-  renderItemsTable();
+    const id = btn.dataset.id;
+    items = items.filter(i => i.id !== id);
+    renderItemsTable();
   });
-  
+
   document.getElementById('add_item').addEventListener('click', () => {
-    items.push({ 
-    id: crypto.randomUUID(),
-    desc: 'Nuevo producto/servicio', 
-    qty: 1, 
-    price: 0 
+    items.push({
+      id: crypto.randomUUID(),
+      desc: 'Nuevo producto/servicio',
+      qty: 1,
+      price: 0
     });
     renderItemsTable();
   });
@@ -405,163 +403,89 @@ autoSave();
   });
 
   const fieldsToWatch = [
-    'company_name', 'company_email',
-    'quote_number', 'quote_date', 'client_name', 'client_ruc', 'client_address',
-    'client_city', 'client_phone', 'client_email',
-    'currency', 'validity_days', 'commercial_notes'
+    'company_name','company_email','quote_number','quote_date',
+    'client_name','client_ruc','client_address','client_city',
+    'client_phone','client_email','currency','validity_days','commercial_notes'
   ];
-  
+
   fieldsToWatch.forEach(id => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.addEventListener('input', () => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', () => {
         updateTotalsPreview();
         if (document.getElementById('auto_update').checked) {
           generatePreview();
         }
-
         autoSave();
       });
     }
   });
 
-  document.getElementById('preview_btn').addEventListener('click', () => {
-  generatePreview();
-  });
-  
+  document.getElementById('preview_btn').addEventListener('click', generatePreview);
+
   document.getElementById('print_btn').addEventListener('click', () => {
     generatePreview();
     setTimeout(() => window.print(), 300);
   });
 
   document.getElementById('new_quote_btn').addEventListener('click', () => {
-    if (confirm('¿Crear una nueva cotización? Se guardará el número actual y se generará uno nuevo.')) {
+    if (confirm('¿Crear nueva cotización?')) {
       newQuote();
     }
   });
 
-  updateTotalsPreview();
-  renderItemsTable();
-});
+  // =========================
+  // ✅ HISTORIAL (ARREGLADO)
+  // =========================
+  document.getElementById('history_btn').addEventListener('click', () => {
+    fetch('/quotes')
+      .then(res => res.json())
+      .then(history => {
+        const modal = document.getElementById('history_modal');
+        const body = document.getElementById('history_body');
 
-document.getElementById('history_btn').addEventListener('click', () => {
-fetch('/quotes')
-  .then(res => res.json())
-  .then(history => {});
+        body.innerHTML = '';
 
-  const modal = document.getElementById('history_modal');
-  const body = document.getElementById('history_body');
+        if (!history.length) {
+          body.innerHTML = `
+            <tr>
+              <td colspan="8" style="text-align:center;padding:20px;color:#999">
+                No hay cotizaciones guardadas
+              </td>
+            </tr>
+          `;
+        } else {
+          history.forEach(q => {
+            const tr = document.createElement('tr');
 
-  body.innerHTML = '';
+            tr.innerHTML = `
+              <td>${q.quote_number}</td>
+              <td>${q.client_name || '-'}</td>
+              <td>${q.client_ruc || '-'}</td>
+              <td>${q.client_email || '-'}</td>
+              <td>${q.client_phone || '-'}</td>
+              <td>${q.client_city || '-'}</td>
+              <td>${new Date(q.quote_date || Date.now()).toLocaleDateString()}</td>
+              <td>${formatMoney(q.total || 0, getCurrency())}</td>
+            `;
 
-  if (history.length === 0) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="4" style="text-align:center;padding:20px;color:#999">
-          No hay cotizaciones guardadas
-        </td>
-      </tr>
-    `;
-  } else {
-history.forEach(q => {
-  const tr = document.createElement('tr');
+            body.appendChild(tr);
+          });
+        }
 
-tr.innerHTML = `
-  <td>${q.quote_number}</td>
-  <td>${q.client_name || '-'}</td>
-  <td>${q.client_ruc || '-'}</td>
-  <td>${q.client_email || '-'}</td>
-  <td>${q.client_phone || '-'}</td>
-  <td>${q.client_city || '-'}</td>
-  <td>${new Date(q.quote_date || Date.now()).toLocaleDateString()}</td>
-  <td>${formatMoney(q.totals?.total || 0, getCurrency())}</td>
-`;
+        modal.classList.remove('hidden');
+      })
+      .catch(err => console.error(err));
+  });
 
-  // 🔥 CLICK PARA CARGAR TODO
-  tr.addEventListener('click', () => {
-    tr.style.cursor = 'pointer';
-
-    document.getElementById('quote_number').value = q.quote_number;
-    document.getElementById('quote_date').value = q.quote_date || '';
-    document.getElementById('client_name').value = q.client_name || '';
-    document.getElementById('client_ruc').value = q.client_ruc || '';
-    document.getElementById('client_address').value = q.client_address || '';
-    document.getElementById('client_city').value = q.client_city || '';
-    document.getElementById('client_phone').value = q.client_phone || '';
-    document.getElementById('client_email').value = q.client_email || '';
-    document.getElementById('commercial_notes').value = q.terms || '';
-
-    // 🔥 cargar items
-    items = (q.items || []).map(i => ({
-      id: crypto.randomUUID(),
-      desc: i.desc,
-      qty: i.qty,
-      price: i.price
-    }));
-
-    renderItemsTable();
-    generatePreview();
-
-    // cerrar modal
+  // =========================
+  // ✅ BOTÓN ❌ FUNCIONA
+  // =========================
+  document.getElementById('close_history').addEventListener('click', () => {
     document.getElementById('history_modal').classList.add('hidden');
   });
 
-  body.appendChild(tr);
+  // INIT
+  updateTotalsPreview();
+  renderItemsTable();
 });
-  }
-
-  modal.classList.remove('hidden');
-});
-
-document.getElementById('close_history').addEventListener('click', () => {
-  document.getElementById('history_modal').classList.add('hidden');
-});
-
-function autoSave() {
-  clearTimeout(saveTimeout);
-
-  saveTimeout = setTimeout(() => {
-    const data = {
-      company_name: document.getElementById('company_name')?.value || '',
-      company_ruc: document.getElementById('company_ruc')?.value || '',
-      company_email: document.getElementById('company_email')?.value || '',
-      quote_number: document.getElementById('quote_number')?.value || '',
-      quote_date: document.getElementById('quote_date')?.value || '',
-      client_name: document.getElementById('client_name')?.value || '',
-      client_ruc: document.getElementById('client_ruc')?.value || '',
-      client_address: document.getElementById('client_address')?.value || '',
-      client_city: document.getElementById('client_city')?.value || '',
-      client_phone: document.getElementById('client_phone')?.value || '',
-      client_email: document.getElementById('client_email')?.value || '',
-      items: items,
-      totals: calculateTotals(),
-      terms: document.getElementById('commercial_notes')?.value || ''
-    };
-
-    const normalized = JSON.stringify({
-      quote_number: data.quote_number,
-      items: data.items
-    });
-
-    if (normalized === lastSavedQuote) return;
-    lastSavedQuote = normalized;
-    
-    fetch('/save', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    quote_number: data.quote_number,
-    company_name: data.company_name,
-    client_name: data.client_name,
-    total: data.totals.total,
-    items: data.items
-  })
-})
-.then(res => res.json())
-.then(() => console.log("Guardado en DB ✔"))
-.catch(err => console.error(err));
-
-    console.log("Guardado LOCAL ✔", data.quote_number);
-
-  }, 800);
-}
