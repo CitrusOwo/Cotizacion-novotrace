@@ -478,7 +478,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
           history.forEach(q => {
             const tr = document.createElement('tr');
-
             tr.innerHTML = `
               <td>${q.quote_number}</td>
               <td>${q.client_name || '-'}</td>
@@ -488,9 +487,25 @@ document.addEventListener('DOMContentLoaded', function() {
               <td>${q.client_city || '-'}</td>
               <td>${new Date(q.created_at || Date.now()).toLocaleDateString('es-PE')}</td>
               <td>${formatMoney(q.total || 0, getCurrency())}</td>
+              <td>
+                <button class="btn ghost small delete-quote-btn" data-id="${q.id}"
+                  style="color:#dc3545;padding:4px 8px">
+                  🗑️
+                </button>
+              </td>
             `;
-
             body.appendChild(tr);
+          });
+
+          // Listeners de eliminar
+          body.querySelectorAll('.delete-quote-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              if (!confirm('¿Eliminar esta cotización?')) return;
+              fetch(`/quotes/${btn.dataset.id}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(() => btn.closest('tr').remove())
+                .catch(err => console.error(err));
+            });
           });
         }
 
@@ -499,9 +514,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .catch(err => console.error(err));
   });
 
-  // =========================
-  // ✅ BOTÓN ❌ FUNCIONA
-  // =========================
+  // ✅ BOTÓN CERRAR
   document.getElementById('close_history').addEventListener('click', () => {
     document.getElementById('history_modal').classList.add('hidden');
   });
@@ -510,11 +523,3 @@ document.addEventListener('DOMContentLoaded', function() {
   updateTotalsPreview();
   renderItemsTable();
 });
-
-//function autoSave() {
-  //clearTimeout(saveTimeout);
-
-  //saveTimeout = setTimeout(() => {
-   // saveNow(); // reutilizamos tu función buena
-  //}, 800);
-//}

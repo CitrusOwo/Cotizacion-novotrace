@@ -102,6 +102,18 @@ app.get('/quotes/:id/items', async (req, res) => {
   }
 });
 
+// ===== ELIMINAR =====
+app.delete('/quotes/:id', async (req, res) => {
+  try {
+    await pool.query(`DELETE FROM quote_items WHERE quote_id = $1`, [req.params.id]);
+    await pool.query(`DELETE FROM quotes WHERE id = $1`, [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ===== FRONTEND =====
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
