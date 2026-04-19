@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cotización NOVOTRACE</title>
+
+  <!-- IMPORTANTE: sin ñ -->
+  <link rel="stylesheet" href="/css/diseno.css">
+</head>
+
+<body>
+  <div class="app">
+    
+    <!-- PANEL FORMULARIO -->
+    <div class="panel">
+      <h2>Crear Cotización</h2>
+
+      <!-- EMPRESA -->
+      <div>
+        <label>Datos de la Empresa</label>
+        <input id="company_name" type="text" value="NOVOTRACE S.A.C." readonly />
+        <input id="company_ruc" type="text" value="20603429622" readonly />
+        <input id="company_email" type="email" value="ventas@novotrace.com.pe" readonly />
+      </div>
+
+      <hr class="divider" />
+
+      <!-- COTIZACIÓN -->
+      <div>
+        <label>Datos de la Cotización</label>
+
+        <div class="row">
+          <div class="col">
+            <label>N° Cotización</label>
+            <input id="quote_number" type="number" />
+          </div>
+
+          <div class="col">
+            <label>Fecha</label>
+            <input id="quote_date" type="date" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Moneda</label>
+            <select id="currency">
+              <option value="USD">Dólares ($)</option>
+              <option value="PEN">Soles (S/)</option>
+              <option value="EUR">Euros (€)</option>
+            </select>
+          </div>
+
+          <div class="col">
+            <label>Validez (días)</label>
+            <input id="validity_days" type="number" value="30" min="1" />
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- CLIENTE -->
+      <div>
+        <label>Datos del Cliente</label>
+        <input id="client_name" type="text" placeholder="Nombre o razón social" />
+        <input id="client_ruc" type="text" placeholder="RUC" />
+        <input id="client_address" type="text" placeholder="Dirección" />
+
+        <div class="row">
+          <div class="col">
+            <input id="client_city" type="text" placeholder="Ciudad" />
+          </div>
+          <div class="col">
+            <input id="client_phone" type="text" placeholder="Teléfono" />
+          </div>
+        </div>
+
+        <input id="client_email" type="email" placeholder="Email del cliente" />
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ITEMS -->
+      <div>
+        <label>Productos / Servicios</label>
+
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th style="width:40%">Descripción</th>
+              <th style="width:15%">Cant.</th>
+              <th style="width:20%">Precio</th>
+              <th style="width:20%">Total</th>
+              <th style="width:5%"></th>
+            </tr>
+          </thead>
+          <tbody id="items_body"></tbody>
+        </table>
+
+        <div style="margin-top:10px;display:flex;gap:8px;">
+          <button class="btn small success" id="add_item">+ Agregar</button>
+          <button class="btn ghost small" id="clear_items">Limpiar</button>
+        </div>
+
+        <div class="totals-preview" id="totals_preview"></div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- NOTAS -->
+      <div>
+        <label>Notas Comerciales</label>
+        <textarea id="commercial_notes"></textarea>
+      </div>
+
+      <label class="auto-update-label">
+        <input type="checkbox" id="auto_update" checked />
+        <span>Actualizar automáticamente</span>
+      </label>
+
+      <!-- BOTONES -->
+      <div class="controls">
+        <button class="btn success" id="new_quote_btn">+ Nueva Cotización</button>
+        <button class="btn" id="preview_btn">Generar Vista</button>
+        <button class="btn ghost" id="print_btn">Imprimir / PDF</button>
+        <button class="btn ghost" id="history_btn">Historial</button>
+      </div>
+    </div>
+
+    <!-- PANEL PREVIEW -->
+    <div class="panel preview-wrap">
+      <div id="preview" class="sheet">
+        <div style="text-align:center;color:#999;padding:100px 20px">
+          <div style="font-size:48px">📄</div>
+          <div>Presiona "Generar Vista"</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL HISTORIAL -->
+  <div id="history_modal" class="history-modal hidden">
+    <div class="history-content">
+
+      <div class="history-header">
+        <h2>Historial de Cotizaciones</h2>
+        <button class="btn ghost small" id="close_history">✕</button>
+      </div>
+
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>Cliente</th>
+            <th>RUC</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Ciudad</th>
+            <th>Fecha</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="history_body"></tbody>
+      </table>
+
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script src="/Cotizacion.js"></script>
+
+</body>
+</html>
