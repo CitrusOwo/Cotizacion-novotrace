@@ -317,9 +317,7 @@ ${commercialNotes ? `
 
 // ========== NUEVA COTIZACIÓN ==========
 function newQuote() {
-
-  // 🔥 GUARDAR ANTES DE LIMPIAR
-  saveNow();
+  saveNow(); // guarda UNA sola vez
 
   items.length = 0;
 
@@ -332,11 +330,6 @@ function newQuote() {
   document.getElementById('client_city').value = '';
   document.getElementById('client_phone').value = '';
   document.getElementById('client_email').value = '';
-
-  document.getElementById('commercial_notes').value =
-    localStorage.getItem('terms') || DEFAULT_TERMS;
-
-  renderItemsTable();
 }
 
 function saveNow() {
@@ -405,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
       generatePreview();
     }
 
-    autoSave();
+    //autoSave();
   });
 
   itemsBody.addEventListener('click', function(e) {
@@ -448,7 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (document.getElementById('auto_update').checked) {
           generatePreview();
         }
-        autoSave();
+        //autoSave();
       });
     }
   });
@@ -522,10 +515,10 @@ document.addEventListener('DOMContentLoaded', function() {
   renderItemsTable();
 });
 
-function autoSave() {
-  clearTimeout(saveTimeout);
+//function autoSave() {
+  //clearTimeout(saveTimeout);
 
-  saveTimeout = setTimeout(() => {
-    saveNow(); // reutilizamos tu función buena
-  }, 800);
-}
+  //saveTimeout = setTimeout(() => {
+   // saveNow(); // reutilizamos tu función buena
+  //}, 800);
+//}
