@@ -456,14 +456,20 @@ document.getElementById('print_btn').addEventListener('click', async () => {
   generatePreview();
   
   const element = document.querySelector('.sheet'); 
+  const previewContainer = document.getElementById('preview');
   
+  // 👉 TRUCO ANTI-CORTE: Forzamos la vista completa temporalmente
+  window.scrollTo(0, 0);
+  previewContainer.scrollLeft = 0;
+  previewContainer.style.overflow = 'visible'; 
+
   const quoteNumber = document.getElementById('quote_number')?.value || 'Borrador';
 
   const opt = {
     margin:       0,
     filename:     `cot.001-${quoteNumber}.novotrace.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true }, // Limpio y simple
+    html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 }, 
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
@@ -479,8 +485,10 @@ document.getElementById('print_btn').addEventListener('click', async () => {
 
         document.getElementById('pdf_viewer').src = url;
         document.getElementById('pdf_modal').classList.remove('hidden');
+        
+        previewContainer.style.overflow = 'auto';
       });
-  }, 100);
+  }, 300);
 });
 
   // ✅ NUEVA COTIZACIÓN
@@ -583,7 +591,7 @@ document.getElementById('history_btn').addEventListener('click', () => {
 });
 
 // ===========================
-// ✅ DESCARGAR PDF DESDE HISTORIAL
+// ✅ DESCARGAR PDF DESDE HISTORIAL (VERSIÓN TURBO 🚀)
 // ===========================
 document.addEventListener('click', async (e) => {
   const btn = e.target.closest('.download-btn');
@@ -609,6 +617,9 @@ document.addEventListener('click', async (e) => {
     document.getElementById('client_phone').value = quoteData.client_phone || '';
     document.getElementById('client_city').value = quoteData.client_city || '';
 
+    if(document.getElementById('client_address')) 
+       document.getElementById('client_address').value = quoteData.client_address || '';
+
     items = itemsData.map(it => ({
       id: crypto.randomUUID(),
       desc: it.desc,
@@ -622,19 +633,27 @@ document.addEventListener('click', async (e) => {
 
     const fileName = `cot.001-${number}.novotrace.pdf`;
     const element = document.querySelector('.sheet');
+    const previewContainer = document.getElementById('preview');
+
+    // 👉 TRUCO ANTI-CORTE
+    window.scrollTo(0, 0);
+    previewContainer.scrollLeft = 0;
+    previewContainer.style.overflow = 'visible';
 
     const opt = {
       margin:       0,
       filename:     fileName,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 1024 },
+      html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     setTimeout(() => {
       html2pdf().set(opt).from(element).save().then(() => {
+        // 👉 Restauramos el botón y el contenedor
         btn.innerHTML = originalText;
         btn.disabled = false;
+        previewContainer.style.overflow = 'auto';
       });
     }, 150);
 
