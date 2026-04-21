@@ -32,7 +32,6 @@ app.get('/test-db', async (req, res) => {
 app.post('/save', async (req, res) => {
   try {
     const {
-      quote_number,
       company_name,
       client_name,
       client_ruc,
@@ -46,13 +45,18 @@ app.post('/save', async (req, res) => {
     const result = await pool.query(
       `INSERT INTO quotes 
       (quote_number, company_name, client_name, client_ruc, client_email, client_phone, client_city, total)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-      RETURNING id`,
-      [quote_number, company_name, client_name, client_ruc, client_email, client_phone, client_city, total]
+      VALUES (
+        (SELECT COALESCE(MAX(quote_number), 390) + 1 FROM quotes),
+        $1,$2,$3,$4,$5,$6,$7
+      )
+      RETURNING id, quote_number`,
+      [company_name, client_name, client_ruc, client_email, client_phone, client_city, total]
     );
 
     const quoteId = result.rows[0].id;
+    const newNumber = result.rows[0].quote_number;
 
+    // 🔥 GUARDAR ITEMS (te faltaba esto)
     for (let it of items || []) {
       await pool.query(
         `INSERT INTO quote_items (quote_id, description, qty, price)
@@ -61,7 +65,7 @@ app.post('/save', async (req, res) => {
       );
     }
 
-    res.json({ ok: true });
+    res.json({ ok: true, quote_number: newNumber });
 
   } catch (err) {
     console.error(err);

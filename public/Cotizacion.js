@@ -21,8 +21,8 @@ function customConfirm({ icon = '❓', title = '¿Estás seguro?', msg = '', okC
       resolve(result);
     };
 
-    document.getElementById('confirm_ok').addEventListener('click', () => cleanup(true));
-    document.getElementById('confirm_cancel').addEventListener('click', () => cleanup(false));
+    document.getElementById('confirm_ok').addEventListener('click', () => cleanup(true), { once: true });
+    document.getElementById('confirm_cancel').addEventListener('click', () => cleanup(false), { once: true });
   });
 }
 
@@ -88,49 +88,58 @@ function renderItemsTable() {
     const total = (it.qty || 0) * (it.price || 0);
     
     tr.innerHTML = `
-      <td>
-        <input 
-          data-id="${it.id}"
-          data-field="desc" 
-          value="${escapeHtml(it.desc || '')}" 
-          style="width:100%;border:0;background:transparent;font-size:13px"
-        />
-      </td>
-      <td>
-        <input 
-          data-id="${it.id}"
-          data-field="qty" 
-          type="number" 
-          min="0" 
-          value="${it.qty || 1}" 
-          style="width:100%;border:0;background:transparent;font-size:13px"
-        />
-      </td>
-      <td>
-        <input 
-          data-id="${it.id}"
-          data-field="price" 
-          type="number" 
-          min="0" 
-          step="0.01" 
-          value="${it.price || 0}" 
-          style="width:100%;border:0;background:transparent;font-size:13px"
-        />
-      </td>
-      <td style="text-align:right;font-size:13px;font-weight:600" class="total-cell">
-        ${formatMoney(total, getCurrency())}
-      </td>
-      <td style="text-align:center">
-        <button 
-          class="btn ghost small" 
-          data-action="remove" 
-          data-id="${it.id}"
-          style="padding:4px 8px"
-        >
-          ✕
-        </button>
-      </td>
-    `;
+  <td>
+    <input 
+      data-id="${it.id}"
+      data-field="desc" 
+      value="${escapeHtml(it.desc ?? '')}" 
+      placeholder="Descripción"
+      style="width:100%;border:0;background:transparent;font-size:13px"
+    />
+  </td>
+
+  <td>
+    <input 
+      data-id="${it.id}"
+      data-field="qty" 
+      type="number" 
+      min="1" 
+      value="${it.qty ?? 1}" 
+      style="width:100%;border:0;background:transparent;font-size:13px;text-align:center"
+    />
+  </td>
+
+  <td>
+    <input 
+      data-id="${it.id}"
+      data-field="price" 
+      type="number" 
+      min="0" 
+      step="0.01" 
+      value="${it.price ?? 0}" 
+      style="width:100%;border:0;background:transparent;font-size:13px;text-align:right"
+    />
+  </td>
+
+  <td 
+    class="total-cell"
+    style="text-align:right;font-size:13px;font-weight:600"
+  >
+    ${formatMoney((it.qty ?? 0) * (it.price ?? 0), getCurrency())}
+  </td>
+
+  <td style="text-align:center">
+    <button 
+      class="btn ghost small" 
+      data-action="remove" 
+      data-id="${it.id}"
+      style="padding:4px 8px"
+      title="Eliminar item"
+    >
+      ✕
+    </button>
+  </td>
+`;
     
     itemsBody.appendChild(tr);
   });
@@ -375,7 +384,12 @@ function saveNow() {
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(data)
   })
-  .then(() => console.log("Guardado ✔"))
+    .then(res => res.json())
+    .then(res => {
+    if(res.quote_number){
+    document.getElementById('quote_number').value = res.quote_number;
+    }
+  })
   .catch(err => console.error(err));
 }
 
@@ -392,6 +406,36 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('commercial_notes').addEventListener('input', (e) => {
     localStorage.setItem('terms', e.target.value);
   });
+
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.download-btn');
+  if (!btn) return;
+
+  try {
+    const id = btn.dataset.id;
+    const number = btn.dataset.number;
+
+    const itemsData = await fetch(`/quotes/${id}/items`).then(r => r.json());
+
+    items = itemsData.map(it => ({
+      id: crypto.randomUUID(),
+      desc: it.desc,
+      qty: it.qty,
+      price: it.price
+    }));
+
+    generatePreview();
+
+    setTimeout(() => {
+      html2pdf().set({
+        filename: `cot.001-${number}.novotrace.pdf`
+      }).from(document.getElementById('preview')).save();
+    }, 300);
+
+  } catch (err) {
+    console.error(err);
+  }
+});
 
   // ===== ITEMS =====
   itemsBody.addEventListener('input', function(e) {
@@ -421,7 +465,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   itemsBody.addEventListener('click', function(e) {
-    const btn = e.target.closest('button');
+    const btn = e.target.closest('[data-action="remove"]');
     if (!btn) return;
 
     const id = btn.dataset.id;
@@ -465,7 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (el) {
       el.addEventListener('input', () => {
         updateTotalsPreview();
-        if (document.getElementById('auto_update').checked) {
+        if (document.getElementById('auto_update')?.checked) {
           generatePreview();
         }
       });
@@ -475,9 +519,26 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('preview_btn').addEventListener('click', generatePreview);
 
   document.getElementById('print_btn').addEventListener('click', () => {
-    generatePreview();
-    setTimeout(() => window.print(), 300);
-  });
+  generatePreview();
+
+  setTimeout(() => {
+    const number = document.getElementById('quote_number').value;
+
+    const filename = `cot.001-${number}.novotrace.pdf`;
+
+    const element = document.getElementById('preview');
+
+    html2pdf()
+      .set({
+        margin: 5,
+        filename: filename,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      })
+      .from(element)
+      .save();
+  }, 300);
+});
 
   // ✅ NUEVA COTIZACIÓN — customConfirm
   document.getElementById('new_quote_btn').addEventListener('click', async () => {
