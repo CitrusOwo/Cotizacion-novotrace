@@ -453,19 +453,17 @@ document.addEventListener('DOMContentLoaded', async function () {
 // ✅ IMPRIMIR / PDF — Muestra el PDF en el Modal
 document.getElementById('print_btn').addEventListener('click', async () => {
   await saveNow();
-  
   generatePreview();
-  const element = document.getElementById('preview');
   
+  const element = document.getElementById('preview');
   element.style.display = 'block'; 
-  element.style.visibility = 'visible';
 
   const quoteNumber = document.getElementById('quote_number')?.value || 'Borrador';
 
   const opt = {
     margin:       0,
-    filename:     `Cotizacion_${quoteNumber}.pdf`,
-    html2canvas:  { scale: 2, useCORS: true },
+    filename:     `cot.001-${quoteNumber}.novotrace.pdf`,
+    html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 }, // Soluciona el corte
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
@@ -482,6 +480,7 @@ document.getElementById('print_btn').addEventListener('click', async () => {
         document.getElementById('pdf_viewer').src = url;
         document.getElementById('pdf_modal').classList.remove('hidden');
         
+        element.style.display = 'none'; 
       });
   }, 500);
 });
@@ -596,11 +595,9 @@ document.addEventListener('click', async (e) => {
     const id = btn.dataset.id;
     const number = btn.dataset.number;
 
-    // 1. Traemos la info general y los items desde el backend
     const quoteData = await fetch(`/quotes/${id}`).then(r => r.json());
     const itemsData = await fetch(`/quotes/${id}/items`).then(r => r.json());
 
-    // 2. Llenamos las variables y el formulario temporalmente
     document.getElementById('quote_number').value = quoteData.quote_number || '';
     document.getElementById('client_name').value = quoteData.client_name || '';
     document.getElementById('client_ruc').value = quoteData.client_ruc || '';
@@ -615,47 +612,52 @@ document.addEventListener('click', async (e) => {
       price: it.price
     }));
 
-    // 3. Ahora sí, generamos la vista con los datos cargados
     generatePreview();
+    
+    const element = document.getElementById('preview');
+    element.style.display = 'block';
 
     const opt = {
       margin:       0,
-      filename:     `Cotizacion_${number}.pdf`,
-      html2canvas:  { scale: 2, useCORS: true },
+      filename:     `cot.001-${number}.novotrace.pdf`,
+      html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 }, // windowWidth evita el corte
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     setTimeout(() => {
-      html2pdf()
-      .set(opt)
-      .from(document.getElementById('preview'))
-      .toPdf()
-      .get('pdf')
-      .then(pdf => {
-        const blob = pdf.output('blob');
-        const url = URL.createObjectURL(blob);
-
-        document.getElementById('pdf_viewer').src = url;
-        document.getElementById('pdf_modal').classList.remove('hidden');
+      // 👉 .save() descarga el archivo directamente sin abrir el visor negro
+      html2pdf().set(opt).from(element).save().then(() => {
+        element.style.display = 'none'; // Ocultamos la capa base
       });
-    }, 300);
+    }, 500);
 
   } catch (err) {
     console.error('Error generando PDF desde historial:', err);
   }
 });
-// ===========================
-// ✅ CERRAR HISTORIAL
-// ===========================
+
 document.getElementById('close_history').addEventListener('click', () => {
   document.getElementById('history_modal').classList.add('hidden');
 });
 
-// INIT
-updateTotalsPreview();
-renderItemsTable();
+// ===========================
+// ✅ INIT (Carga Inicial)
+// ===========================
+async function initApp() {
+  await fetchNextQuoteNumber();
+  
+  if (items.length === 0) {
+    items.push({ id: crypto.randomUUID(), desc: 'Nuevo producto/servicio', qty: 1, price: 0 });
+  }
+  
+  renderItemsTable();
+  updateTotalsPreview();
+  generatePreview();
+}
 
-});
+initApp();
+
+}); 
 
 // ✅ CERRAR VISOR DE PDF
 document.getElementById('close_pdf')?.addEventListener('click', () => {
