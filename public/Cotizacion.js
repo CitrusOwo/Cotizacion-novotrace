@@ -596,12 +596,16 @@ document.addEventListener('click', async (e) => {
     const quoteData = await fetch(`/quotes/${id}`).then(r => r.json());
     const itemsData = await fetch(`/quotes/${id}/items`).then(r => r.json());
 
+    // 2. Cargamos los datos en el formulario (para que el preview los lea)
     document.getElementById('quote_number').value = quoteData.quote_number || '';
     document.getElementById('client_name').value = quoteData.client_name || '';
     document.getElementById('client_ruc').value = quoteData.client_ruc || '';
     document.getElementById('client_email').value = quoteData.client_email || '';
     document.getElementById('client_phone').value = quoteData.client_phone || '';
     document.getElementById('client_city').value = quoteData.client_city || '';
+    
+    if(document.getElementById('client_address')) 
+       document.getElementById('client_address').value = quoteData.client_address || '';
 
     items = itemsData.map(it => ({
       id: crypto.randomUUID(),
@@ -610,30 +614,36 @@ document.addEventListener('click', async (e) => {
       price: it.price
     }));
 
+    renderItemsTable();
+    updateTotalsPreview();
     generatePreview();
-    
+
+    const fileName = `cot.001-${number}.novotrace.pdf`;
+
     const element = document.querySelector('.sheet');
 
     const opt = {
-    margin:       0,
-    filename:     `cot.001-${quoteNumber}.novotrace.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true }, // Limpio y simple
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
+      margin:       0,
+      filename:     fileName,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { 
+        scale: 2, 
+        useCORS: true, 
+        scrollX: 0, 
+        scrollY: 0,
+        windowWidth: 1024 
+      },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
 
     setTimeout(() => {
-      // Descarga directa a la PC
       html2pdf().set(opt).from(element).save();
-    }, 300);
+    }, 600); // Damos un poco más de tiempo para que el HTML se renderice bien
 
   } catch (err) {
-    console.error('Error generando PDF desde historial:', err);
+    console.error('Error al descargar desde el historial:', err);
+    alert('Hubo un error al procesar la descarga.');
   }
-});
-
-document.getElementById('close_history').addEventListener('click', () => {
-  document.getElementById('history_modal').classList.add('hidden');
 });
 
 // ===========================
