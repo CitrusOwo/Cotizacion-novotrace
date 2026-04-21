@@ -318,7 +318,7 @@ function saveNow() {
     document.getElementById('client_name').value ||
     document.getElementById('client_ruc').value;
 
-  if (!hasData) return Promise.resolve();
+  if (!hasData) return Promise.resolve({ ok: false });
 
   const data = {
     company_name: document.getElementById('company_name')?.value || '',
@@ -333,29 +333,31 @@ function saveNow() {
     items: items
   };
 
-return fetch('/save', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(data)
-})
-.then(res => res.json())
-.then(res => {
-  console.log('Guardado:', res);
-
-  if (res.quote_number) {
-    document.getElementById('quote_number').value = res.quote_number;
-  }
-})
-.catch(err => console.error('ERROR GUARDANDO:', err));
+  return fetch('/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(res => {
+    console.log('Guardado:', res);
+    return res;
+  })
+  .catch(err => {
+    console.error('ERROR GUARDANDO:', err);
+    return { ok: false };
+  });
 }
 
 async function newQuote() {
-  console.log('Nueva cotización lista');
+  const res = await saveNow();
 
-  await saveNow();
+  if (!res?.ok) {
+    alert('No se guardó la cotización');
+    return;
+  }
 
-  await fetchNextQuoteNumber(); 
-
+  await fetchNextQuoteNumber();
 
   items = [];
 
@@ -448,17 +450,29 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   document.getElementById('preview_btn').addEventListener('click', generatePreview);
 
-  // ✅ IMPRIMIR / PDF — guarda primero
+// ✅ IMPRIMIR / PDF — guarda primero
 document.getElementById('print_btn').addEventListener('click', async () => {
   await saveNow();
   generatePreview();
 
   const element = document.getElementById('preview');
+  
+  // 👉 Obtenemos el número actual para el nombre del archivo
+  const quoteNumber = document.getElementById('quote_number')?.value || 'Borrador';
 
   document.body.classList.add('printing');
 
+  // 👉 1. Configuramos html2pdf (Nivel PRO)
+  const opt = {
+    margin:       0, 
+    filename:     `Cotizacion_${quoteNumber}.pdf`, 
+    html2canvas:  { scale: 2, useCORS: true },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
   setTimeout(() => {
     html2pdf()
+      .set(opt)
       .from(element)
       .toPdf()
       .get('pdf')
@@ -582,7 +596,7 @@ document.addEventListener('click', async (e) => {
 
   try {
     const id = btn.dataset.id;
-    const number = btn.dataset.number;
+    const number = btn.dataset.number; // 👉 ¡AQUÍ ESTABA EL BUG! Ahora sí lo vamos a usar.
 
     const itemsData = await fetch(`/quotes/${id}/items`).then(r => r.json());
 
@@ -595,22 +609,30 @@ document.addEventListener('click', async (e) => {
 
     generatePreview();
 
-    setTimeout(() => {
-    html2pdf()
-    .from(document.getElementById('preview'))
-    .toPdf()
-    .get('pdf')
-    .then(pdf => {
-      const blob = pdf.output('blob');
-      const url = URL.createObjectURL(blob);
+    const opt = {
+      margin:       0,
+      filename:     `Cotizacion_${number}.pdf`,
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
 
-      document.getElementById('pdf_viewer').src = url;
-      document.getElementById('pdf_modal').classList.remove('hidden');
-    });
-}, 300);
+    setTimeout(() => {
+      html2pdf()
+      .set(opt)
+      .from(document.getElementById('preview'))
+      .toPdf()
+      .get('pdf')
+      .then(pdf => {
+        const blob = pdf.output('blob');
+        const url = URL.createObjectURL(blob);
+
+        document.getElementById('pdf_viewer').src = url;
+        document.getElementById('pdf_modal').classList.remove('hidden');
+      });
+    }, 300);
 
   } catch (err) {
-    console.error(err);
+    console.error('Error generando PDF desde historial:', err);
   }
 });
 

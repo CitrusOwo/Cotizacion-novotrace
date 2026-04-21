@@ -1011,3 +1011,26 @@ textarea {
   background: white;
   z-index: 9999;
 }
+
+.sheet {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 10mm;
+  background: white;
+}
+
+body.printing * {
+  visibility: hidden;
+}
+
+body.printing #preview,
+body.printing #preview * {
+  visibility: visible;
+}
+
+body.printing #preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
