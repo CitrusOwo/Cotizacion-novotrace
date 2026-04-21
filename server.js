@@ -53,20 +53,21 @@ app.post('/save', async (req, res) => {
       client_phone,
       client_city,
       total,
-      items
+      items,
+      currency
     } = req.body;
 
     await client.query('BEGIN');
 
     const result = await client.query(
       `INSERT INTO quotes 
-      (quote_number, company_name, client_name, client_ruc, client_email, client_phone, client_city, total)
+      (quote_number, company_name, client_name, client_ruc, client_email, client_phone, client_city, total, currency)
       VALUES (
         nextval('quotes_quote_number_seq'),
-        $1,$2,$3,$4,$5,$6,$7
+        $1,$2,$3,$4,$5,$6,$7,$8
       )
       RETURNING id, quote_number`,
-      [company_name, client_name, client_ruc, client_email, client_phone, client_city, total]
+      [company_name, client_name, client_ruc, client_email, client_phone, client_city, total, currency]
     );
 
     const quoteId = result.rows[0].id;
@@ -99,8 +100,8 @@ app.get('/quotes', async (req, res) => {
     const result = await pool.query(`
       SELECT id, quote_number, company_name, client_name, 
              client_ruc, client_email, client_phone, client_city, 
-             total, created_at
-      FROM quotes 
+             total, currency, created_at
+      FROM quotes
       ORDER BY quote_number DESC
     `);
 
@@ -126,6 +127,14 @@ app.get('/quotes/:id/items', async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener items' });
   }
+});
+
+app.get('/quotes/:id', async (req, res) => {
+  const result = await pool.query(
+    `SELECT * FROM quotes WHERE id = $1`,
+    [req.params.id]
+  );
+  res.json(result.rows[0]);
 });
 
 // ===== ELIMINAR =====

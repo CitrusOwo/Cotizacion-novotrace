@@ -329,6 +329,7 @@ function saveNow() {
     client_phone: document.getElementById('client_phone')?.value || '',
     client_city:  document.getElementById('client_city')?.value  || '',
     total: calculateTotals().total,
+    currency: getCurrency(),
     items: items
   };
 
@@ -340,6 +341,10 @@ return fetch('/save', {
 .then(res => res.json())
 .then(res => {
   console.log('Guardado:', res);
+
+  if (res.quote_number) {
+    document.getElementById('quote_number').value = res.quote_number;
+  }
 })
 .catch(err => console.error('ERROR GUARDANDO:', err));
 }
@@ -470,16 +475,18 @@ document.getElementById('print_btn').addEventListener('click', async () => {
         const blob = pdf.output('blob');
         const url = URL.createObjectURL(blob);
 
-        // 👇 mostrar en modal
+        // ✅ SOLO mostrar en modal
         document.getElementById('pdf_viewer').src = url;
         document.getElementById('pdf_modal').classList.remove('hidden');
-
-        // 👇 descargar también
-        pdf.save(`cotizacion-${number}.pdf`);
       });
 
   }, 300);
 });
+
+document.getElementById('client_name').value = quote.client_name;
+document.getElementById('client_ruc').value = quote.client_ruc;
+document.getElementById('currency').value = quote.currency;
+
   // ✅ NUEVA COTIZACIÓN
   document.getElementById('new_quote_btn').addEventListener('click', async () => {
     const ok = await customConfirm({
@@ -522,7 +529,7 @@ document.getElementById('history_btn').addEventListener('click', () => {
             <td>${q.client_phone || '-'}</td>
             <td>${q.client_city  || '-'}</td>
             <td>${new Date(q.created_at || Date.now()).toLocaleDateString('es-PE')}</td>
-            <td>${formatMoney(q.total || 0, getCurrency())}</td>
+            <td>${formatMoney(q.total || 0, q.currency || 'USD')}</td>
             <td style="display:flex;gap:6px;justify-content:center">
 
               <!-- 📄 DESCARGAR -->
@@ -602,10 +609,18 @@ document.addEventListener('click', async (e) => {
     generatePreview();
 
     setTimeout(() => {
-      html2pdf().set({
-        filename: `cot.001-${number}.novotrace.pdf`
-      }).from(document.getElementById('preview')).save();
-    }, 300);
+    html2pdf()
+    .from(document.getElementById('preview'))
+    .toPdf()
+    .get('pdf')
+    .then(pdf => {
+      const blob = pdf.output('blob');
+      const url = URL.createObjectURL(blob);
+
+      document.getElementById('pdf_viewer').src = url;
+      document.getElementById('pdf_modal').classList.remove('hidden');
+    });
+}, 300);
 
   } catch (err) {
     console.error(err);
