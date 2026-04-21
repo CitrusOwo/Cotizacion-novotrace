@@ -30,11 +30,9 @@ app.get('/test-db', async (req, res) => {
 // ===== 👉 OBTENER SIGUIENTE NÚMERO (solo visual) =====
 app.get('/next-quote-number', async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT COALESCE(MAX(quote_number), 2999) + 1 AS next
-      FROM quotes
-    `);
-
+    const result = await pool.query(
+      `SELECT COALESCE(MAX(quote_number), 390) + 1 AS next FROM quotes`
+    );
     res.json({ quote_number: result.rows[0].next });
   } catch (err) {
     console.error(err);

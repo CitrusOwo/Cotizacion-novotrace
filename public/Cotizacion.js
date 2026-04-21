@@ -309,26 +309,13 @@ function generatePreview() {
 }
 
 // ========== NUEVA COTIZACIÓN ==========
-async function newQuote() {
-  await saveNow();
-  await fetchNextQuoteNumber(); // backend da el número siguiente
-
-  items.length = 0;
-  document.getElementById('quote_date').value    = new Date().toISOString().slice(0, 10);
-  document.getElementById('client_name').value    = '';
-  document.getElementById('client_ruc').value     = '';
-  document.getElementById('client_address').value = '';
-  document.getElementById('client_city').value    = '';
-  document.getElementById('client_phone').value   = '';
-  document.getElementById('client_email').value   = '';
-
-  renderItemsTable();
-}
-
-// ========== GUARDAR ==========
 function saveNow() {
+  if (!items.length) {
+    console.warn('No hay items, no se guarda');
+    return Promise.resolve();
+  }
+
   const data = {
-    quote_number: document.getElementById('quote_number')?.value || '',
     company_name: document.getElementById('company_name')?.value || '',
     client_name:  document.getElementById('client_name')?.value  || '',
     client_ruc:   document.getElementById('client_ruc')?.value   || '',
@@ -344,14 +331,11 @@ function saveNow() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   })
-    .then(res => res.json())
-    .then(res => {
-      if (res.quote_number) {
-        document.getElementById('quote_number').value = res.quote_number;
-      }
-      console.log('Guardado ✔');
-    })
-    .catch(err => console.error(err));
+  .then(res => res.json())
+  .then(res => {
+    console.log('Guardado ✔', res);
+  })
+  .catch(err => console.error(err));
 }
 
 // ========== EVENTOS ==========
@@ -438,9 +422,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     generatePreview();
     const number = document.getElementById('quote_number').value;
     setTimeout(() => {
-      html2pdf().set({
-        filename: `cot.001-${number}.novotrace.pdf`
-      }).from(document.getElementById('preview')).save();
+  html2pdf()
+    .from(document.getElementById('preview'))
+    .outputPdf('bloburl')
+    .then(url => {
+      window.open(url); // 👈 abre preview en otra pestaña
+    });
     }, 300);
   });
 
@@ -463,6 +450,7 @@ document.getElementById('history_btn').addEventListener('click', () => {
   fetch('/quotes')
     .then(res => res.json())
     .then(history => {
+      console.log(history); 
       const modal = document.getElementById('history_modal');
       const body  = document.getElementById('history_body');
       body.innerHTML = '';
