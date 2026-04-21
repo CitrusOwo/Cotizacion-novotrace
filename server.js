@@ -58,13 +58,12 @@ app.post('/save', async (req, res) => {
 
     await client.query('BEGIN');
 
-    // 🔥 Número seguro con SEQUENCE
     const result = await client.query(
       `INSERT INTO quotes 
       (quote_number, company_name, client_name, client_ruc, client_email, client_phone, client_city, total)
       VALUES (
         nextval('quotes_quote_number_seq'),
-        $1,$2,$3,$4,$5,$6,$7,$8
+        $1,$2,$3,$4,$5,$6,$7
       )
       RETURNING id, quote_number`,
       [company_name, client_name, client_ruc, client_email, client_phone, client_city, total]
@@ -73,7 +72,6 @@ app.post('/save', async (req, res) => {
     const quoteId = result.rows[0].id;
     const newNumber = result.rows[0].quote_number;
 
-    // ===== ITEMS =====
     for (let it of items || []) {
       await client.query(
         `INSERT INTO quote_items (quote_id, description, qty, price)
