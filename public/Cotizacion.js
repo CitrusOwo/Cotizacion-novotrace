@@ -455,14 +455,15 @@ document.getElementById('print_btn').addEventListener('click', async () => {
   await saveNow();
   generatePreview();
   
-  const element = document.getElementById('preview');
+  const element = document.querySelector('.sheet'); 
+  
   const quoteNumber = document.getElementById('quote_number')?.value || 'Borrador';
 
   const opt = {
     margin:       0,
     filename:     `cot.001-${quoteNumber}.novotrace.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024 }, 
+    html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 }, 
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
@@ -478,7 +479,6 @@ document.getElementById('print_btn').addEventListener('click', async () => {
 
         document.getElementById('pdf_viewer').src = url;
         document.getElementById('pdf_modal').classList.remove('hidden');
-        
       });
   }, 300);
 });
@@ -611,17 +611,19 @@ document.addEventListener('click', async (e) => {
     }));
 
     generatePreview();
-    const element = document.getElementById('preview');
+    
+    const element = document.querySelector('.sheet');
 
     const opt = {
       margin:       0,
       filename:     `cot.001-${number}.novotrace.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024 }, // Arregla el corte
+      html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 }, 
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     setTimeout(() => {
+      // Descarga directa a la PC
       html2pdf().set(opt).from(element).save();
     }, 300);
 
