@@ -10,11 +10,10 @@ function customConfirm({ icon = '❓', title = '¿Estás seguro?', msg = '', okC
     overlay.classList.remove('hidden');
     const cleanup = (result) => {
       overlay.classList.add('hidden');
-      const newOk = okBtn.cloneNode(true);
-      okBtn.replaceWith(newOk);
       const cancelBtn = document.getElementById('confirm_cancel');
-      const newCancel = cancelBtn.cloneNode(true);
-      cancelBtn.replaceWith(newCancel);
+
+      okBtn.replaceWith(okBtn.cloneNode(true));
+      cancelBtn.replaceWith(cancelBtn.cloneNode(true));
       resolve(result);
     };
     document.getElementById('confirm_ok').addEventListener('click', () => cleanup(true), { once: true });
@@ -52,10 +51,10 @@ async function fetchNextQuoteNumber() {
 
 function formatMoney(v, curr = 'USD') {
   const symbol = currencySymbols[curr] || '$';
-  return `${symbol} ${Number(v).toLocaleString('es-PE', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`.replace(/,/g, ' ');
+  return new Intl.NumberFormat('es-PE', {
+  style: 'currency',
+  currency: curr
+}).format(v);
 }
 
 function escapeHtml(str) {
@@ -128,9 +127,12 @@ function renderItemsTable() {
 
   updateTotalsPreview();
 
+  clearTimeout(saveTimeout);
+saveTimeout = setTimeout(() => {
   if (document.getElementById('auto_update')?.checked) {
-    requestAnimationFrame(generatePreview);
+    generatePreview();
   }
+  }, 300);
 }
 
 function calculateTotals() {
@@ -201,6 +203,7 @@ function generatePreview() {
   }
 
   document.getElementById('preview').innerHTML = `
+  <div class="sheet">
     <div class="header-top">
       <div class="company-section">
         <img src="${LOGO_PATH}" alt="NOVOTRACE" class="company-logo" />
@@ -441,25 +444,42 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('preview_btn').addEventListener('click', generatePreview);
 
   // ✅ IMPRIMIR / PDF — guarda primero
-  document.getElementById('print_btn').addEventListener('click', async () => {
-    await saveNow();
-    generatePreview();
-    const number = document.getElementById('quote_number').value;
-    setTimeout(() => {
-  html2pdf()
-  .from(document.getElementById('preview'))
-  .toPdf()
-  .get('pdf')
-  .then(pdf => {
-    const blob = pdf.output('blob');
-    const url = URL.createObjectURL(blob);
+document.getElementById('print_btn').addEventListener('click', async () => {
+  await saveNow();
+  generatePreview();
 
-    document.getElementById('pdf_viewer').src = url;
-    document.getElementById('pdf_modal').classList.remove('hidden');
-  });
-    }, 300);
-  });
+  const number = document.getElementById('quote_number').value;
 
+  setTimeout(() => {
+    const element = document.getElementById('preview');
+
+    const opt = {
+      margin: 10,
+      filename: `cotizacion-${number}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf()
+      .set(opt)
+      .from(element)
+      .toPdf()
+      .get('pdf')
+      .then(pdf => {
+        const blob = pdf.output('blob');
+        const url = URL.createObjectURL(blob);
+
+        // 👇 mostrar en modal
+        document.getElementById('pdf_viewer').src = url;
+        document.getElementById('pdf_modal').classList.remove('hidden');
+
+        // 👇 descargar también
+        pdf.save(`cotizacion-${number}.pdf`);
+      });
+
+  }, 300);
+});
   // ✅ NUEVA COTIZACIÓN
   document.getElementById('new_quote_btn').addEventListener('click', async () => {
     const ok = await customConfirm({
