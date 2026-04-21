@@ -463,7 +463,7 @@ document.getElementById('print_btn').addEventListener('click', async () => {
     margin:       0,
     filename:     `cot.001-${quoteNumber}.novotrace.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 }, 
+    html2canvas:  { scale: 2, useCORS: true }, // Limpio y simple
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
@@ -615,12 +615,12 @@ document.addEventListener('click', async (e) => {
     const element = document.querySelector('.sheet');
 
     const opt = {
-      margin:       0,
-      filename:     `cot.001-${number}.novotrace.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 }, 
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+    margin:       0,
+    filename:     `cot.001-${quoteNumber}.novotrace.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true }, // Limpio y simple
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
 
     setTimeout(() => {
       // Descarga directa a la PC

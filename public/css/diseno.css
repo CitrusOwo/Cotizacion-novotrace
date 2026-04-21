@@ -1004,12 +1004,17 @@ textarea {
 }
 
 .sheet {
-  width: 210mm; 
-  min-height: 297mm; 
-  padding: 10mm; 
+  width: 794px !important; 
+  min-height: 1123px; 
+  padding: 40px;
   background: white;
-  margin: 0 auto; 
-  box-sizing: border-box; 
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.sheet table {
+  width: 100%;
+  border-collapse: collapse;
 }
 /* =========================================
    VISTA PREVIA Y MODAL VISOR DE PDF
@@ -1019,6 +1024,7 @@ textarea {
   display: block; 
   width: 100%;
   overflow-x: auto;
+  padding: 20px 0;
 }
 
 #pdf_modal {
