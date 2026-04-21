@@ -594,7 +594,7 @@ document.addEventListener('click', async (e) => {
 
   try {
     const id = btn.dataset.id;
-    const number = btn.dataset.number; // 👉 ¡AQUÍ ESTABA EL BUG! Ahora sí lo vamos a usar.
+    const number = btn.dataset.number;
 
     const itemsData = await fetch(`/quotes/${id}/items`).then(r => r.json());
 
@@ -606,6 +606,10 @@ document.addEventListener('click', async (e) => {
     }));
 
     generatePreview();
+    
+    // 👉 Forzamos que se vea para tomar la foto
+    const element = document.getElementById('preview');
+    element.style.display = 'block';
 
     const opt = {
       margin:       0,
@@ -617,7 +621,7 @@ document.addEventListener('click', async (e) => {
     setTimeout(() => {
       html2pdf()
       .set(opt)
-      .from(document.getElementById('preview'))
+      .from(element)
       .toPdf()
       .get('pdf')
       .then(pdf => {
@@ -626,8 +630,10 @@ document.addEventListener('click', async (e) => {
 
         document.getElementById('pdf_viewer').src = url;
         document.getElementById('pdf_modal').classList.remove('hidden');
+        
+        element.style.display = 'none';
       });
-    }, 300);
+    }, 500); 
 
   } catch (err) {
     console.error('Error generando PDF desde historial:', err);

@@ -1003,15 +1003,6 @@ textarea {
   to   { opacity: 1; }
 }
 
-.printing #preview {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 210mm;
-  background: white;
-  z-index: 9999;
-}
-
 .sheet {
   width: 210mm;
   min-height: 297mm;
@@ -1019,18 +1010,56 @@ textarea {
   background: white;
 }
 
-body.printing * {
-  visibility: hidden;
+/* =========================================
+   VISTA PREVIA Y MODAL VISOR DE PDF
+   ========================================= */
+
+#preview {
+  display: none;
 }
 
-body.printing #preview,
-body.printing #preview * {
-  visibility: visible;
+#pdf_modal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.85); 
+  backdrop-filter: blur(4px);
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.2s ease;
 }
 
-body.printing #preview {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+#pdf_modal.hidden {
+  display: none !important;
+}
+
+#pdf_viewer {
+  width: 80%;
+  max-width: 1000px;
+  height: 85vh;
+  border: none;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0px 20px 60px rgba(0,0,0,0.5);
+  animation: slideUp 0.3s ease;
+}
+
+#close_pdf {
+  margin-bottom: 12px;
+  padding: 8px 16px;
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  align-self: flex-end;
+  margin-right: 10%;
+  transition: background 0.15s;
+}
+
+#close_pdf:hover {
+  background: #b02a37;
 }

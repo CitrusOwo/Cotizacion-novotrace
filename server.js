@@ -30,8 +30,9 @@ app.get('/test-db', async (req, res) => {
 // ===== 👉 OBTENER SIGUIENTE NÚMERO (solo visual) =====
 app.get('/next-quote-number', async (req, res) => {
   try {
+    // Convierte el texto a entero para buscar el máximo real
     const result = await pool.query(
-      `SELECT COALESCE(MAX(quote_number), 390) + 1 AS next FROM quotes`
+      `SELECT COALESCE(MAX(CAST(quote_number AS INTEGER)), 390) + 1 AS next FROM quotes`
     );
     res.json({ quote_number: result.rows[0].next });
   } catch (err) {
@@ -46,28 +47,22 @@ app.post('/save', async (req, res) => {
 
   try {
     const {
-      company_name,
-      client_name,
-      client_ruc,
-      client_email,
-      client_phone,
-      client_city,
-      total,
-      items,
-      currency
+      company_name, client_name, client_ruc, client_email, 
+      client_phone, client_city, total, items
     } = req.body;
 
     await client.query('BEGIN');
 
+    // Insertamos calculando el número máximo en tiempo real
     const result = await client.query(
       `INSERT INTO quotes 
-      (quote_number, company_name, client_name, client_ruc, client_email, client_phone, client_city, total, currency)
+      (quote_number, company_name, client_name, client_ruc, client_email, client_phone, client_city, total)
       VALUES (
-        nextval('quotes_quote_number_seq'),
-        $1,$2,$3,$4,$5,$6,$7,$8
+        (SELECT COALESCE(MAX(CAST(quote_number AS INTEGER)), 390) + 1 FROM quotes),
+        $1,$2,$3,$4,$5,$6,$7
       )
       RETURNING id, quote_number`,
-      [company_name, client_name, client_ruc, client_email, client_phone, client_city, total, currency]
+      [company_name, client_name, client_ruc, client_email, client_phone, client_city, total]
     );
 
     const quoteId = result.rows[0].id;
@@ -82,7 +77,6 @@ app.post('/save', async (req, res) => {
     }
 
     await client.query('COMMIT');
-
     res.json({ ok: true, quote_number: newNumber });
 
   } catch (err) {
