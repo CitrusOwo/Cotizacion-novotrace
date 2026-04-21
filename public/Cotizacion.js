@@ -329,11 +329,16 @@ function saveNow() {
     items: items
   };
 
-  return fetch('/save', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
+return fetch('/save', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(data)
+})
+.then(res => res.json())
+.then(res => {
+  console.log('Guardado:', res);
+})
+.catch(err => console.error('ERROR GUARDANDO:', err));
 }
 
 async function newQuote() {
@@ -442,11 +447,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     const number = document.getElementById('quote_number').value;
     setTimeout(() => {
   html2pdf()
-    .from(document.getElementById('preview'))
-    .outputPdf('bloburl')
-    .then(url => {
-      window.open(url);
-    });
+  .from(document.getElementById('preview'))
+  .toPdf()
+  .get('pdf')
+  .then(pdf => {
+    const blob = pdf.output('blob');
+    const url = URL.createObjectURL(blob);
+
+    document.getElementById('pdf_viewer').src = url;
+    document.getElementById('pdf_modal').classList.remove('hidden');
+  });
     }, 300);
   });
 
