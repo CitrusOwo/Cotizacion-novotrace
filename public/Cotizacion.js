@@ -453,21 +453,12 @@ document.getElementById('print_btn').addEventListener('click', async () => {
   await saveNow();
   generatePreview();
 
-  const number = document.getElementById('quote_number').value;
+  const element = document.getElementById('preview');
+
+  document.body.classList.add('printing');
 
   setTimeout(() => {
-    const element = document.getElementById('preview');
-
-    const opt = {
-      margin: 10,
-      filename: `cotizacion-${number}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
     html2pdf()
-      .set(opt)
       .from(element)
       .toPdf()
       .get('pdf')
@@ -475,17 +466,13 @@ document.getElementById('print_btn').addEventListener('click', async () => {
         const blob = pdf.output('blob');
         const url = URL.createObjectURL(blob);
 
-        // ✅ SOLO mostrar en modal
         document.getElementById('pdf_viewer').src = url;
         document.getElementById('pdf_modal').classList.remove('hidden');
-      });
 
+        document.body.classList.remove('printing');
+      });
   }, 300);
 });
-
-document.getElementById('client_name').value = quote.client_name;
-document.getElementById('client_ruc').value = quote.client_ruc;
-document.getElementById('currency').value = quote.currency;
 
   // ✅ NUEVA COTIZACIÓN
   document.getElementById('new_quote_btn').addEventListener('click', async () => {
