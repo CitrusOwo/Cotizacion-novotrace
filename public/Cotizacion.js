@@ -450,22 +450,21 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   document.getElementById('preview_btn').addEventListener('click', generatePreview);
 
-// ✅ IMPRIMIR / PDF — guarda primero
+// ✅ IMPRIMIR / PDF — Muestra el PDF en el Modal
 document.getElementById('print_btn').addEventListener('click', async () => {
   await saveNow();
+  
   generatePreview();
-
   const element = document.getElementById('preview');
   
-  // 👉 Obtenemos el número actual para el nombre del archivo
+  element.style.display = 'block'; 
+  element.style.visibility = 'visible';
+
   const quoteNumber = document.getElementById('quote_number')?.value || 'Borrador';
 
-  document.body.classList.add('printing');
-
-  // 👉 1. Configuramos html2pdf (Nivel PRO)
   const opt = {
-    margin:       0, 
-    filename:     `Cotizacion_${quoteNumber}.pdf`, 
+    margin:       0,
+    filename:     `Cotizacion_${quoteNumber}.pdf`,
     html2canvas:  { scale: 2, useCORS: true },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
@@ -482,10 +481,9 @@ document.getElementById('print_btn').addEventListener('click', async () => {
 
         document.getElementById('pdf_viewer').src = url;
         document.getElementById('pdf_modal').classList.remove('hidden');
-
-        document.body.classList.remove('printing');
+        
       });
-  }, 300);
+  }, 500);
 });
 
   // ✅ NUEVA COTIZACIÓN
