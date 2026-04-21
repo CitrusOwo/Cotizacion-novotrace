@@ -456,14 +456,13 @@ document.getElementById('print_btn').addEventListener('click', async () => {
   generatePreview();
   
   const element = document.getElementById('preview');
-  element.style.display = 'block'; 
-
   const quoteNumber = document.getElementById('quote_number')?.value || 'Borrador';
 
   const opt = {
     margin:       0,
     filename:     `cot.001-${quoteNumber}.novotrace.pdf`,
-    html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 }, // Soluciona el corte
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024 }, 
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
@@ -480,9 +479,8 @@ document.getElementById('print_btn').addEventListener('click', async () => {
         document.getElementById('pdf_viewer').src = url;
         document.getElementById('pdf_modal').classList.remove('hidden');
         
-        element.style.display = 'none'; 
       });
-  }, 500);
+  }, 300);
 });
 
   // ✅ NUEVA COTIZACIÓN
@@ -613,23 +611,19 @@ document.addEventListener('click', async (e) => {
     }));
 
     generatePreview();
-    
     const element = document.getElementById('preview');
-    element.style.display = 'block';
 
     const opt = {
       margin:       0,
       filename:     `cot.001-${number}.novotrace.pdf`,
-      html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 }, // windowWidth evita el corte
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024 }, // Arregla el corte
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     setTimeout(() => {
-      // 👉 .save() descarga el archivo directamente sin abrir el visor negro
-      html2pdf().set(opt).from(element).save().then(() => {
-        element.style.display = 'none'; // Ocultamos la capa base
-      });
-    }, 500);
+      html2pdf().set(opt).from(element).save();
+    }, 300);
 
   } catch (err) {
     console.error('Error generando PDF desde historial:', err);
