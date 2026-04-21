@@ -596,7 +596,17 @@ document.addEventListener('click', async (e) => {
     const id = btn.dataset.id;
     const number = btn.dataset.number;
 
+    // 1. Traemos la info general y los items desde el backend
+    const quoteData = await fetch(`/quotes/${id}`).then(r => r.json());
     const itemsData = await fetch(`/quotes/${id}/items`).then(r => r.json());
+
+    // 2. Llenamos las variables y el formulario temporalmente
+    document.getElementById('quote_number').value = quoteData.quote_number || '';
+    document.getElementById('client_name').value = quoteData.client_name || '';
+    document.getElementById('client_ruc').value = quoteData.client_ruc || '';
+    document.getElementById('client_email').value = quoteData.client_email || '';
+    document.getElementById('client_phone').value = quoteData.client_phone || '';
+    document.getElementById('client_city').value = quoteData.client_city || '';
 
     items = itemsData.map(it => ({
       id: crypto.randomUUID(),
@@ -605,11 +615,8 @@ document.addEventListener('click', async (e) => {
       price: it.price
     }));
 
+    // 3. Ahora sí, generamos la vista con los datos cargados
     generatePreview();
-    
-    // 👉 Forzamos que se vea para tomar la foto
-    const element = document.getElementById('preview');
-    element.style.display = 'block';
 
     const opt = {
       margin:       0,
@@ -621,7 +628,7 @@ document.addEventListener('click', async (e) => {
     setTimeout(() => {
       html2pdf()
       .set(opt)
-      .from(element)
+      .from(document.getElementById('preview'))
       .toPdf()
       .get('pdf')
       .then(pdf => {
@@ -630,16 +637,13 @@ document.addEventListener('click', async (e) => {
 
         document.getElementById('pdf_viewer').src = url;
         document.getElementById('pdf_modal').classList.remove('hidden');
-        
-        element.style.display = 'none';
       });
-    }, 500); 
+    }, 300);
 
   } catch (err) {
     console.error('Error generando PDF desde historial:', err);
   }
 });
-
 // ===========================
 // ✅ CERRAR HISTORIAL
 // ===========================
@@ -651,4 +655,10 @@ document.getElementById('close_history').addEventListener('click', () => {
 updateTotalsPreview();
 renderItemsTable();
 
+});
+
+// ✅ CERRAR VISOR DE PDF
+document.getElementById('close_pdf')?.addEventListener('click', () => {
+  document.getElementById('pdf_modal').classList.add('hidden');
+  document.getElementById('pdf_viewer').src = ''; 
 });
