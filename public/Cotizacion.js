@@ -310,13 +310,16 @@ function generatePreview() {
 
 // ========== NUEVA COTIZACIÓN ==========
 function saveNow() {
-  if (!items.length) {
-    console.warn('No hay items, no se guarda');
-    return Promise.resolve();
-  }
+  const hasData =
+    items.length ||
+    document.getElementById('client_name').value ||
+    document.getElementById('client_ruc').value;
+
+  if (!hasData) return Promise.resolve();
 
   const data = {
     company_name: document.getElementById('company_name')?.value || '',
+    quote_number: document.getElementById('quote_number')?.value || '',
     client_name:  document.getElementById('client_name')?.value  || '',
     client_ruc:   document.getElementById('client_ruc')?.value   || '',
     client_email: document.getElementById('client_email')?.value || '',
@@ -330,12 +333,28 @@ function saveNow() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
-  })
-  .then(res => res.json())
-  .then(res => {
-    console.log('Guardado ✔', res);
-  })
-  .catch(err => console.error(err));
+  });
+}
+
+async function newQuote() {
+  console.log('Nueva cotización lista');
+
+  await saveNow();
+
+  await fetchNextQuoteNumber(); 
+
+
+  items = [];
+
+  document.getElementById('client_name').value = '';
+  document.getElementById('client_ruc').value = '';
+  document.getElementById('client_address').value = '';
+  document.getElementById('client_city').value = '';
+  document.getElementById('client_phone').value = '';
+  document.getElementById('client_email').value = '';
+
+  renderItemsTable();
+  updateTotalsPreview();
 }
 
 // ========== EVENTOS ==========
@@ -426,7 +445,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     .from(document.getElementById('preview'))
     .outputPdf('bloburl')
     .then(url => {
-      window.open(url); // 👈 abre preview en otra pestaña
+      window.open(url);
     });
     }, 300);
   });
