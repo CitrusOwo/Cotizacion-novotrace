@@ -106,12 +106,16 @@ function downloadPdf(filename, mode = 'save') {
   const origOverflowPreview = previewContainer.style.overflow;
   const origMaxHeightWrap = previewWrap.style.maxHeight;
   const origOverflowWrap = previewWrap.style.overflow;
+  const origPaddingWrap = previewWrap.style.padding;
+  const origPaddingPreview = previewContainer.style.padding;
 
-  // 👉 1. Desplegamos TODO
   window.scrollTo(0, 0);
   previewWrap.style.maxHeight = 'none';      
   previewWrap.style.overflow = 'visible';    
   previewContainer.style.overflow = 'visible'; 
+  
+  previewWrap.style.padding = '0';
+  previewContainer.style.padding = '0';
   element.style.margin = '0';                
 
   const imgs = element.querySelectorAll('img');
@@ -129,7 +133,7 @@ function downloadPdf(filename, mode = 'save') {
           html2canvas:  {
             scale: 2,          
             useCORS: true,
-            width: 794,        
+            width: 794,       
             windowWidth: 794,
             scrollX: 0,
             scrollY: 0
@@ -137,20 +141,23 @@ function downloadPdf(filename, mode = 'save') {
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
+        const restaurarDiseno = () => {
+          previewWrap.style.maxHeight = origMaxHeightWrap;
+          previewWrap.style.overflow = origOverflowWrap;
+          previewContainer.style.overflow = origOverflowPreview;
+          previewWrap.style.padding = origPaddingWrap;
+          previewContainer.style.padding = origPaddingPreview;
+          element.style.margin = origMargin; 
+        };
+
         if (mode === 'blob') {
           html2pdf().set(opt).from(element).toPdf().get('pdf').then(pdf => {
-            previewWrap.style.maxHeight = origMaxHeightWrap;
-            previewWrap.style.overflow = origOverflowWrap;
-            previewContainer.style.overflow = origOverflowPreview;
-            element.style.margin = origMargin; 
+            restaurarDiseno();
             resolve(pdf.output('blob'));
           });
         } else {
           html2pdf().set(opt).from(element).save().then(() => {
-            previewWrap.style.maxHeight = origMaxHeightWrap;
-            previewWrap.style.overflow = origOverflowWrap;
-            previewContainer.style.overflow = origOverflowPreview;
-            element.style.margin = origMargin;
+            restaurarDiseno();
             resolve();
           });
         }
