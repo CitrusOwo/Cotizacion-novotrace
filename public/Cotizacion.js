@@ -96,10 +96,10 @@ function updateTotalsPreview() {
   `;
 }
 
-// ========== PDF OPTIONS — función centralizada ==========
+// ========== PDF: opciones centralizadas ==========
 function getPdfOptions(filename) {
   return {
-    margin: [8, 8, 8, 8],
+    margin: 0,
     filename: filename,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
@@ -107,12 +107,29 @@ function getPdfOptions(filename) {
       useCORS: true,
       scrollX: 0,
       scrollY: 0,
-      windowWidth: 794,
-      windowHeight: 1123
+      width: 794,
+      windowWidth: 794
     },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: 'avoid-all' }
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
+}
+
+// ========== PDF: clonar sheet fuera del DOM ==========
+function getSheetClone() {
+  const original = document.querySelector('.sheet');
+  const clone = original.cloneNode(true);
+  clone.style.cssText = `
+    position: fixed;
+    top: -9999px;
+    left: 0;
+    width: 794px;
+    background: white;
+    padding: 24px 32px;
+    box-sizing: border-box;
+    z-index: -1;
+  `;
+  document.body.appendChild(clone);
+  return clone;
 }
 
 function generatePreview() {
@@ -342,24 +359,18 @@ document.addEventListener('DOMContentLoaded', async function () {
     await saveNow();
     generatePreview();
 
-    // ✅ quoteNumber definido correctamente aquí
     const quoteNumber = document.getElementById('quote_number')?.value || 'Borrador';
-    const element = document.querySelector('.sheet');
     const previewContainer = document.getElementById('preview');
-
-    window.scrollTo(0, 0);
-    previewContainer.scrollLeft = 0;
-    previewContainer.style.overflow = 'visible';
-
     const opt = getPdfOptions(`cot.001-${quoteNumber}.novotrace.pdf`);
 
     setTimeout(() => {
-      html2pdf().set(opt).from(element).toPdf().get('pdf').then(pdf => {
+      const clone = getSheetClone();
+      html2pdf().set(opt).from(clone).toPdf().get('pdf').then(pdf => {
+        document.body.removeChild(clone);
         const blob = pdf.output('blob');
         const url = URL.createObjectURL(blob);
         document.getElementById('pdf_viewer').src = url;
         document.getElementById('pdf_modal').classList.remove('hidden');
-        previewContainer.style.overflow = 'auto';
       });
     }, 300);
   });
@@ -432,7 +443,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     try {
       const id     = btn.dataset.id;
-      const number = btn.dataset.number; // ✅ 'number' definido correctamente aquí
+      const number = btn.dataset.number; // ✅ correcto
 
       const [quoteData, itemsData] = await Promise.all([
         fetch(`/quotes/${id}`).then(r => r.json()),
@@ -454,21 +465,14 @@ document.addEventListener('DOMContentLoaded', async function () {
       updateTotalsPreview();
       generatePreview();
 
-      const element = document.querySelector('.sheet');
-      const previewContainer = document.getElementById('preview');
-
-      window.scrollTo(0, 0);
-      previewContainer.scrollLeft = 0;
-      previewContainer.style.overflow = 'visible';
-
-      // ✅ 'number' usado correctamente
-      const opt = getPdfOptions(`cot.001-${number}.novotrace.pdf`);
+      const opt = getPdfOptions(`cot.001-${number}.novotrace.pdf`); // ✅ correcto
 
       setTimeout(() => {
-        html2pdf().set(opt).from(element).save().then(() => {
+        const clone = getSheetClone();
+        html2pdf().set(opt).from(clone).save().then(() => {
+          document.body.removeChild(clone);
           btn.innerHTML = originalText;
           btn.disabled = false;
-          previewContainer.style.overflow = 'auto';
         });
       }, 150);
 
