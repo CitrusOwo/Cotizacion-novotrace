@@ -100,15 +100,18 @@ function updateTotalsPreview() {
 function downloadPdf(filename, mode = 'save') {
   const element = document.querySelector('.sheet');
   const previewContainer = document.getElementById('preview');
+  const previewWrap = document.querySelector('.preview-wrap'); 
 
-  const originalMargin = element.style.margin;
-  const originalOverflow = previewContainer.style.overflow;
+  const origMargin = element.style.margin;
+  const origOverflowPreview = previewContainer.style.overflow;
+  const origMaxHeightWrap = previewWrap.style.maxHeight;
+  const origOverflowWrap = previewWrap.style.overflow;
 
   window.scrollTo(0, 0);
-  previewContainer.scrollTop = 0;
-  previewContainer.scrollLeft = 0;
-  previewContainer.style.overflow = 'visible';
-  element.style.margin = '0'; 
+  previewWrap.style.maxHeight = 'none';    
+  previewWrap.style.overflow = 'visible';   
+  previewContainer.style.overflow = 'visible'; 
+  element.style.margin = '0';              
 
   const imgs = element.querySelectorAll('img');
   const waits = Array.from(imgs).map(img =>
@@ -123,8 +126,8 @@ function downloadPdf(filename, mode = 'save') {
       html2canvas:  {
         scale: 2,          
         useCORS: true,
-        width: 794,      
-        height: 1123,     
+        width: 794,        
+        height: 1123,      
         windowWidth: 794,
         scrollX: 0,
         scrollY: 0
@@ -135,14 +138,18 @@ function downloadPdf(filename, mode = 'save') {
     let result;
     if (mode === 'blob') {
       result = html2pdf().set(opt).from(element).toPdf().get('pdf').then(pdf => {
-        previewContainer.style.overflow = originalOverflow;
-        element.style.margin = originalMargin; 
+        previewWrap.style.maxHeight = origMaxHeightWrap;
+        previewWrap.style.overflow = origOverflowWrap;
+        previewContainer.style.overflow = origOverflowPreview;
+        element.style.margin = origMargin; 
         return pdf.output('blob');
       });
     } else {
       result = html2pdf().set(opt).from(element).save().then(() => {
-        previewContainer.style.overflow = originalOverflow;
-        element.style.margin = originalMargin;
+        previewWrap.style.maxHeight = origMaxHeightWrap;
+        previewWrap.style.overflow = origOverflowWrap;
+        previewContainer.style.overflow = origOverflowPreview;
+        element.style.margin = origMargin;
       });
     }
 
