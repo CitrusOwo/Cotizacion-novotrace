@@ -701,16 +701,13 @@ textarea {
   }
   
   /* Ajustar la hoja para impresión */
-  .sheet { 
-    box-shadow: none !important;
-    padding: 15mm 12mm !important;
-    margin: 0 !important;
-    width: 100% !important;
-    border: none !important;
-    min-height: auto !important;
-    position: relative !important;
-  }
-  
+  .sheet {
+  width: 100%;
+  max-width: 794px;
+  padding: 20px 24px; /* reduce esto */
+  margin: 0 auto;
+  box-sizing: border-box;
+}
   .quote-header {
     margin-bottom: 20px;
     padding-bottom: 15px;

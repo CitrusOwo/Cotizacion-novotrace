@@ -141,9 +141,10 @@ function downloadPdf(filename, mode = 'save') {
       html2canvas: {
         scale: 1,
         useCORS: true,
-        logging: false,
         width: A4_W,
-        windowWidth: A4_W
+        windowWidth: A4_W,
+        scrollX: 0,
+        scrollY: 0
       },
       jsPDF: { unit: 'px', format: [A4_W, 1123], orientation: 'portrait', hotfixes: ['px_scaling'] }
     };
