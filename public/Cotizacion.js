@@ -96,46 +96,69 @@ function updateTotalsPreview() {
   `;
 }
 
-// ========== PDF: opciones ==========
-function getPdfOptions(filename) {
-  return {
-    margin: [10, 10, 10, 10],
-    filename: filename,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      logging: false
-    },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-}
+// ========== PDF: genera el PDF directamente desde HTML string ==========
+function downloadPdf(filename, mode = 'save') {
+  // A4 en px a 96dpi
+  const A4_W = 794;
 
-// ========== PDF: crear wrapper fuera de pantalla ==========
-function createPdfWrapper() {
   const sheetEl = document.querySelector('.sheet');
+
+  // Wrapper fuera de pantalla con ancho A4 exacto
   const wrapper = document.createElement('div');
   wrapper.style.cssText = `
     position: absolute;
-    left: -9999px;
+    left: -${A4_W + 100}px;
     top: 0;
-    width: 794px;
+    width: ${A4_W}px;
     background: white;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   `;
   wrapper.innerHTML = sheetEl.outerHTML;
   document.body.appendChild(wrapper);
 
   const clone = wrapper.firstElementChild;
   clone.style.cssText = `
-    width: 794px;
-    padding: 24px 32px;
-    box-sizing: border-box;
-    background: white;
-    box-shadow: none;
-    margin: 0;
+    width: ${A4_W}px !important;
+    padding: 20px 28px !important;
+    box-sizing: border-box !important;
+    background: white !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    min-height: unset !important;
   `;
 
-  return wrapper;
+  // Esperar imágenes
+  const imgs = wrapper.querySelectorAll('img');
+  const waits = Array.from(imgs).map(img =>
+    img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; })
+  );
+
+  return Promise.all(waits).then(() => {
+    const opt = {
+      margin: 0,
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 1,
+        useCORS: true,
+        logging: false,
+        width: A4_W,
+        windowWidth: A4_W
+      },
+      jsPDF: { unit: 'px', format: [A4_W, 1123], orientation: 'portrait', hotfixes: ['px_scaling'] }
+    };
+
+    if (mode === 'blob') {
+      return html2pdf().set(opt).from(clone).toPdf().get('pdf').then(pdf => {
+        document.body.removeChild(wrapper);
+        return pdf.output('blob');
+      });
+    } else {
+      return html2pdf().set(opt).from(clone).save().then(() => {
+        document.body.removeChild(wrapper);
+      });
+    }
+  });
 }
 
 function generatePreview() {
@@ -319,7 +342,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     localStorage.setItem('terms', e.target.value);
   });
 
-  // ===== ITEMS =====
   itemsBody.addEventListener('input', function (e) {
     const el = e.target;
     const field = el.dataset.field;
@@ -366,19 +388,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     generatePreview();
 
     const quoteNumber = document.getElementById('quote_number')?.value || 'Borrador';
-    const opt = getPdfOptions(`cot.001-${quoteNumber}.novotrace.pdf`);
 
-    setTimeout(() => {
-      const wrapper = createPdfWrapper();
-      const clone = wrapper.firstElementChild;
-
-      html2pdf().set(opt).from(clone).toPdf().get('pdf').then(pdf => {
-        document.body.removeChild(wrapper);
-        const blob = pdf.output('blob');
-        const url = URL.createObjectURL(blob);
-        document.getElementById('pdf_viewer').src = url;
-        document.getElementById('pdf_modal').classList.remove('hidden');
-      });
+    setTimeout(async () => {
+      const blob = await downloadPdf(`cot.001-${quoteNumber}.novotrace.pdf`, 'blob');
+      const url = URL.createObjectURL(blob);
+      document.getElementById('pdf_viewer').src = url;
+      document.getElementById('pdf_modal').classList.remove('hidden');
     }, 400);
   });
 
@@ -388,9 +403,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (ok) await newQuote();
   });
 
-  // ===========================
   // ✅ HISTORIAL
-  // ===========================
   document.getElementById('history_btn').addEventListener('click', () => {
     fetch('/quotes')
       .then(res => res.json())
@@ -437,9 +450,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       .catch(err => console.error(err));
   });
 
-  // ===========================
   // ✅ DESCARGAR PDF DESDE HISTORIAL
-  // ===========================
   document.addEventListener('click', async (e) => {
     const btn = e.target.closest('.download-btn');
     if (!btn) return;
@@ -472,17 +483,10 @@ document.addEventListener('DOMContentLoaded', async function () {
       updateTotalsPreview();
       generatePreview();
 
-      const opt = getPdfOptions(`cot.001-${number}.novotrace.pdf`);
-
-      setTimeout(() => {
-        const wrapper = createPdfWrapper();
-        const clone = wrapper.firstElementChild;
-
-        html2pdf().set(opt).from(clone).save().then(() => {
-          document.body.removeChild(wrapper);
-          btn.innerHTML = originalText;
-          btn.disabled = false;
-        });
+      setTimeout(async () => {
+        await downloadPdf(`cot.001-${number}.novotrace.pdf`, 'save');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
       }, 400);
 
     } catch (err) {
