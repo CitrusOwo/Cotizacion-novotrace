@@ -96,71 +96,6 @@ function updateTotalsPreview() {
   `;
 }
 
-// ========== PDF: genera el PDF directamente ==========
-function downloadPdf(filename, mode = 'save') {
-  const element = document.querySelector('.sheet');
-
-  const inputs = element.querySelectorAll('input, textarea, select');
-  inputs.forEach(input => {
-    if (input.tagName === 'INPUT') {
-      input.setAttribute('value', input.value); 
-    } else if (input.tagName === 'TEXTAREA') {
-      input.innerHTML = input.value; 
-    }
-  });
-
-  const printContainer = document.createElement('div');
-  printContainer.style.position = 'fixed'; // Flota sobre todo
-  printContainer.style.top = '0';
-  printContainer.style.left = '0';
-  printContainer.style.width = '794px';
-  printContainer.style.height = '1122px';
-  printContainer.style.overflow = 'hidden'; 
-  printContainer.style.background = 'white';
-  printContainer.style.zIndex = '-9999'; 
-
-  const clone = element.cloneNode(true);
-  clone.style.margin = '0';
-  clone.style.width = '100%';
-  clone.style.height = '100%';
-  
-  printContainer.appendChild(clone);
-  document.body.appendChild(printContainer);
-
-  const imgs = printContainer.querySelectorAll('img');
-  const waits = Array.from(imgs).map(img =>
-    img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; })
-  );
-
-  return Promise.all(waits).then(() => {
-    const opt = {
-      margin:       0,
-      filename:     filename,
-      image:        { type: 'jpeg', quality: 1 }, 
-      html2canvas:  {
-        scale: 2,          
-        useCORS: true,
-        scrollX: 0,
-        scrollY: 0
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    let result;
-    if (mode === 'blob') {
-      result = html2pdf().set(opt).from(printContainer).toPdf().get('pdf').then(pdf => {
-        document.body.removeChild(printContainer); 
-        return pdf.output('blob');
-      });
-    } else {
-      result = html2pdf().set(opt).from(printContainer).save().then(() => {
-        document.body.removeChild(printContainer); 
-      });
-    }
-
-    return result;
-  });
-}
 function generatePreview() {
   const companyName     = document.getElementById('company_name')?.value || '';
   const companyRuc      = document.getElementById('company_ruc')?.value || '';
@@ -382,19 +317,14 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   document.getElementById('preview_btn').addEventListener('click', generatePreview);
 
-  // ✅ IMPRIMIR / PDF
+  // ✅ IMPRIMIR / PDF (MÉTODO NATIVO)
   document.getElementById('print_btn').addEventListener('click', async () => {
     await saveNow();
     generatePreview();
 
-    const quoteNumber = document.getElementById('quote_number')?.value || 'Borrador';
-
-    setTimeout(async () => {
-      const blob = await downloadPdf(`cot.001-${quoteNumber}.novotrace.pdf`, 'blob');
-      const url = URL.createObjectURL(blob);
-      document.getElementById('pdf_viewer').src = url;
-      document.getElementById('pdf_modal').classList.remove('hidden');
-    }, 400);
+    setTimeout(() => {
+      window.print();
+    }, 300);
   });
 
   // ✅ NUEVA COTIZACIÓN
@@ -450,7 +380,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       .catch(err => console.error(err));
   });
 
-  // ✅ DESCARGAR PDF DESDE HISTORIAL
+// ✅ DESCARGAR PDF DESDE HISTORIAL (Impresión nativa)
   document.addEventListener('click', async (e) => {
     const btn = e.target.closest('.download-btn');
     if (!btn) return;
@@ -461,13 +391,13 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     try {
       const id     = btn.dataset.id;
-      const number = btn.dataset.number;
 
       const [quoteData, itemsData] = await Promise.all([
         fetch(`/quotes/${id}`).then(r => r.json()),
         fetch(`/quotes/${id}/items`).then(r => r.json())
       ]);
 
+      // Rellenamos el formulario visualmente
       document.getElementById('quote_number').value  = quoteData.quote_number || '';
       document.getElementById('client_name').value   = quoteData.client_name  || '';
       document.getElementById('client_ruc').value    = quoteData.client_ruc   || '';
@@ -483,8 +413,11 @@ document.addEventListener('DOMContentLoaded', async function () {
       updateTotalsPreview();
       generatePreview();
 
-      setTimeout(async () => {
-        await downloadPdf(`cot.001-${number}.novotrace.pdf`, 'save');
+      setTimeout(() => {
+        document.getElementById('history_modal').classList.add('hidden');
+        
+        window.print();
+        
         btn.innerHTML = originalText;
         btn.disabled = false;
       }, 400);
@@ -493,7 +426,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       console.error('Error al descargar desde el historial:', err);
       btn.innerHTML = originalText;
       btn.disabled = false;
-      alert('Hubo un error al descargar.');
+      alert('Hubo un error al preparar la cotización.');
     }
   });
 

@@ -1,3 +1,8 @@
+@page {
+  margin: 15mm 10mm;
+  size: A4;
+}
+
 :root {
   --primary-dark: #2c3e50;
   --text-dark: #1a1a1a;
@@ -271,7 +276,6 @@ textarea {
   color: var(--text-dark);
 }
 
-/* ========== PREVIEW A4 ========== */
 .preview-wrap {
   padding: 24px;
   overflow-y: auto;
@@ -280,13 +284,11 @@ textarea {
   border-radius: 8px;
 }
 
-/* ========== ELEMENTOS OCULTOS ========== */
 .quote-main-title,
 .intro-text {
   display: none !important;
 }
 
-/* ========== HEADER TOP CON DISEÑO ACTUALIZADO ========== */
 .header-top {
   display: flex;
   justify-content: space-between;
@@ -348,7 +350,6 @@ textarea {
   color: var(--primary-dark);
 }
 
-/* ========== TABLA DE DATOS DEL CLIENTE ========== */
 .client-data-table {
   width: 100%;
   border-collapse: collapse;
@@ -377,7 +378,6 @@ textarea {
   color: var(--text-dark);
 }
 
-/* ========== HEADER CON LOGO Y COTIZACIÓN ========== */
 .quote-header {
   display: flex;
   justify-content: space-between;
@@ -422,7 +422,6 @@ textarea {
   color: var(--text-muted);
 }
 
-/* ========== COMPANY INFO ========== */
 .company-info-box {
   background: var(--bg-light);
   padding: 16px 20px;
@@ -446,7 +445,6 @@ textarea {
   color: var(--text-dark);
 }
 
-/* ========== SECCIONES PREVIEW ========== */
 .meta-info {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -480,7 +478,6 @@ textarea {
   margin: 15px 0;
 }
 
-/* ========== TABLA DE PRODUCTOS ========== */
 .items {
   width: 100%;
   border-collapse: collapse;
@@ -517,7 +514,6 @@ textarea {
   color: var(--text-dark);
 }
 
-/* ========== TOTALES ========== */
 .totals-box {
   margin-top: 20px;
   padding: 16px;
@@ -545,7 +541,6 @@ textarea {
   margin-top: 8px;
 }
 
-/* ========== NOTAS ========== */
 .notes-section {
   margin-top: 15px;
   padding: 12px 16px;
@@ -568,7 +563,6 @@ textarea {
   color: var(--text-dark);
 }
 
-/* ========== MEDIOS DE PAGO ========== */
 .payment-display {
   border: 1px solid var(--border-color);
   padding: 16px 24px;
@@ -641,158 +635,31 @@ textarea {
   font-weight: 600;
 }
 
-/* ========== FOOTER ========== */
-/* Footer eliminado por solicitud del usuario */
-
-/* ========== ANIMACIONES ========== */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .fade-in {
   animation: fadeIn 0.3s ease;
 }
 
-/* ========== IMPRESIÓN ========== */
-@media print {
-  /* Ocultar todo excepto la vista previa */
-  body { 
-    background: white !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-  
-  /* Ocultar el grid principal */
-  .app { 
-    display: block !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    gap: 0 !important;
-  }
-  
-  /* Ocultar completamente el panel del formulario */
-  .panel:first-child { 
-    display: none !important;
-    visibility: hidden !important;
-  }
-  
-  /* Mostrar solo el panel de preview */
-  .preview-wrap { 
-    padding: 0 !important;
-    margin: 0 !important;
-    background: white !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    display: block !important;
-    max-height: none !important;
-    overflow: visible !important;
-  }
-  
-  /* Ajustar la hoja para impresión */
-  .sheet {
-  width: 794px;
-  min-height: auto;
-  padding: 16px 20px;
-  margin: 0 auto;
-  box-sizing: border-box;
-}
-
-.sheet {
-  page-break-inside: avoid;
-}
-
-.payment-display,
-.notes-section,
-.totals-box {
-  page-break-inside: avoid;
-}
-
-  .quote-header {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    page-break-after: avoid;
-  }
-  
-  .logo-section img {
-    height: 55px;
-  }
-  
-  /* Mantener colores de fondo en tablas */
-  .items th {
-    background: #f8f9fa !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  
-  .payment-table th {
-    background: #f8f9fa !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  
-  .company-info-box {
-    background: #f8f9fa !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    page-break-inside: avoid;
-  }
-  
-  .notes-section {
-    background: #f8f9fa !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    page-break-inside: avoid;
-  }
-  
-  .totals-box {
-    background: #f8f9fa !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    page-break-inside: avoid;
-  }
-  
-  /* Evitar saltos de página en elementos importantes */
-  .payment-display {
-    page-break-inside: avoid;
-  }
-  
-  .items-section {
-    page-break-inside: auto;
-  }
-  
-  .meta-info {
-    page-break-inside: avoid;
-  }
-}
-
-/* ========== RESPONSIVE ========== */
 @media (max-width: 1024px) {
   .app { 
     grid-template-columns: 1fr;
     padding: 16px;
   }
-  
   .sheet {
     width: 100%;
     padding: 30px 20px;
   }
-  
   .quote-header {
     flex-direction: column;
     gap: 16px;
   }
-  
   .quote-info {
     text-align: left;
   }
-  
   .meta-info {
     grid-template-columns: 1fr;
   }
@@ -802,19 +669,15 @@ textarea {
   .app {
     padding: 12px;
   }
-  
   .panel {
     padding: 20px;
   }
-  
   .row {
     flex-direction: column;
   }
-  
   .sheet {
     padding: 20px 15px;
   }
-  
   .logo-section img {
     height: 50px;
   }
@@ -856,12 +719,6 @@ textarea {
   cursor: pointer;
 }
 
-.history-header h2 {
-  font-size: 18px;
-  margin: 0;
-  color: var(--text-dark);
-}
-
 .history-table {
   width: 100%;
   border-collapse: collapse;
@@ -895,7 +752,6 @@ textarea {
   overflow-x: auto;
 }
 
-/* ===== MODAL CONFIRMACIÓN ===== */
 .confirm-overlay {
   position: fixed;
   inset: 0;
@@ -990,11 +846,6 @@ textarea {
   to   { transform: translateY(0);    opacity: 1; }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
 .sheet {
   width: 794px !important;
   min-height: 1122px !important;
@@ -1007,9 +858,6 @@ textarea {
   width: 100%;
   border-collapse: collapse;
 }
-/* =========================================
-   VISTA PREVIA Y MODAL VISOR DE PDF
-   ========================================= */
 
 #preview {
   display: block; 
@@ -1062,4 +910,74 @@ textarea {
 
 #close_pdf:hover {
   background: #b02a37;
+}
+
+/* ========== IMPRESIÓN NATIVA A4 ========== */
+@media print {
+  /* Fondo blanco puro y sin márgenes en el cuerpo */
+  body { 
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Destruimos el grid lateral para que no estorbe */
+  .app { 
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+  
+  /* OCULTAMOS EL FORMULARIO, BOTONES Y MODALES */
+  .panel:first-child,
+  .controls,
+  #pdf_modal,
+  #confirm_modal,
+  #history_modal { 
+    display: none !important;
+  }
+  
+  /* Liberamos la vista previa para que ocupe toda la hoja */
+  .preview-wrap { 
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  
+  /* Formateamos la hoja para que el navegador la imprima perfecto */
+  .sheet {
+    width: 100% !important; /* El navegador calcula el ancho exacto del A4 */
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Evitar recortes feos entre páginas si se hace muy largo */
+  .quote-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    page-break-after: avoid;
+  }
+
+  .company-info-box,
+  .notes-section,
+  .totals-box,
+  .payment-display {
+    page-break-inside: avoid;
+  }
+
+  /* Mantener los colores de las tablas exactos al PDF */
+  .items th,
+  .payment-table th,
+  .company-info-box,
+  .notes-section,
+  .totals-box {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }
