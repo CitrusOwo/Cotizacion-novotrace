@@ -285,17 +285,6 @@ textarea {
   border-radius: 8px;
 }
 
-.sheet {
-  background: var(--bg-white);
-  padding: 40px;
-  width: 794px;
-  min-height: 1123px;
-  margin: 0 auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  page-break-after: always;
-  position: relative;
-}
-
 /* ========== ELEMENTOS OCULTOS ========== */
 .quote-main-title,
 .intro-text {
@@ -1004,12 +993,13 @@ textarea {
 }
 
 .sheet {
-  width: 794px !important; 
-  min-height: 1123px; 
-  padding: 40px;
-  background: white;
-  margin: 0 auto;
+  width: 794px;
+  min-height: auto !important;
   box-sizing: border-box;
+  padding: 24px 32px;
+  background: #fff;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .sheet table {

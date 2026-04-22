@@ -308,6 +308,7 @@ function generatePreview() {
         </tbody>
       </table>
     </div>
+  </div>
   `;
 }
 
@@ -466,12 +467,20 @@ document.getElementById('print_btn').addEventListener('click', async () => {
   const quoteNumber = document.getElementById('quote_number')?.value || 'Borrador';
 
   const opt = {
-    margin:       0,
-    filename:     `cot.001-${quoteNumber}.novotrace.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 }, 
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
+  margin: [8, 8, 8, 8],
+  filename: `cot.001-${quoteNumber}.novotrace.pdf`,
+  image: { type: 'jpeg', quality: 0.98 },
+  html2canvas: {
+    scale: 2,
+    useCORS: true,
+    scrollX: 0,
+    scrollY: 0,
+    windowWidth: 794,     
+    windowHeight: 1123     
+  },
+  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+  pagebreak: { mode: 'avoid-all' } 
+};
 
   setTimeout(() => {
     html2pdf()
@@ -635,18 +644,25 @@ document.addEventListener('click', async (e) => {
     const element = document.querySelector('.sheet');
     const previewContainer = document.getElementById('preview');
 
-    // 👉 TRUCO ANTI-CORTE
     window.scrollTo(0, 0);
     previewContainer.scrollLeft = 0;
     previewContainer.style.overflow = 'visible';
 
     const opt = {
-      margin:       0,
-      filename:     fileName,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+    margin: [8, 8, 8, 8],
+    filename: `cot.001-${quoteNumber}.novotrace.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+    scale: 2,
+    useCORS: true,
+    scrollX: 0,
+    scrollY: 0,
+    windowWidth: 794,     
+    windowHeight: 1123    
+  },
+  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+  pagebreak: { mode: 'avoid-all' } 
+};
 
     setTimeout(() => {
       html2pdf().set(opt).from(element).save().then(() => {
