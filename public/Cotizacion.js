@@ -136,15 +136,16 @@ function downloadPdf(filename, mode = 'save') {
     const opt = {
       margin: 0,
       filename: filename,
-      image: { type: 'jpeg', quality: 0.98 },
+      image: { type: 'jpeg', quality: 1 },
       html2canvas: {
-      scale: 1,
-      useCORS: true
+        scale: 2,     
+        useCORS: true,
+        windowWidth: A4_W  
       },
       jsPDF: { 
-      unit: 'mm', 
-      format: 'a4', 
-      orientation: 'portrait' 
+        unit: 'mm', 
+        format: 'a4', 
+        orientation: 'portrait' 
       }
     };
 
