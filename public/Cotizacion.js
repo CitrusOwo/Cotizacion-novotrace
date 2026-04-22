@@ -317,13 +317,19 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   document.getElementById('preview_btn').addEventListener('click', generatePreview);
 
-  // ✅ IMPRIMIR / PDF (MÉTODO NATIVO)
+// ✅ IMPRIMIR / PDF (MÉTODO NATIVO)
   document.getElementById('print_btn').addEventListener('click', async () => {
     await saveNow();
     generatePreview();
 
     setTimeout(() => {
+      const originalTitle = document.title;
+      const quoteNumber = document.getElementById('quote_number')?.value || 'Borrador';
+      document.title = `cot.001-${quoteNumber}.novotrace`;
+
       window.print();
+
+      document.title = originalTitle;
     }, 300);
   });
 
@@ -416,8 +422,12 @@ document.addEventListener('DOMContentLoaded', async function () {
       setTimeout(() => {
         document.getElementById('history_modal').classList.add('hidden');
         
+        const originalTitle = document.title;
+        document.title = `cot.001-${number}.novotrace`;
+
         window.print();
         
+        document.title = originalTitle;
         btn.innerHTML = originalText;
         btn.disabled = false;
       }, 400);

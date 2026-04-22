@@ -1,5 +1,5 @@
 @page {
-  margin: 15mm 10mm;
+  margin: 0;
   size: A4;
 }
 
@@ -951,10 +951,11 @@ textarea {
   .sheet {
     width: 100% !important; /* El navegador calcula el ancho exacto del A4 */
     min-height: auto !important;
-    padding: 0 !important;
+    padding: 12mm 15mm !important;
     margin: 0 !important;
     box-shadow: none !important;
     border: none !important;
+    zoom: 0.95;
   }
 
   /* Evitar recortes feos entre páginas si se hace muy largo */
