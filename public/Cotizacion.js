@@ -100,40 +100,25 @@ function updateTotalsPreview() {
 function downloadPdf(filename, mode = 'save') {
   const element = document.querySelector('.sheet');
 
-  // 👉 1. EL TRUCO DE ORO: Guardamos lo que escribiste para que no se borre al clonar
   const inputs = element.querySelectorAll('input, textarea, select');
   inputs.forEach(input => {
     if (input.tagName === 'INPUT') {
-      input.setAttribute('value', input.value); // Fija el texto en inputs
+      input.setAttribute('value', input.value);
     } else if (input.tagName === 'TEXTAREA') {
-      input.innerHTML = input.value; // Fija el texto en textareas
+      input.innerHTML = input.value;
     }
   });
 
-  // 👉 2. Creamos un clon exacto de tu hoja (ahora sí con todos tus datos)
   const clone = element.cloneNode(true);
   
-  // 👉 3. Creamos un "Estudio Fotográfico" invisible y perfecto
-  const printContainer = document.createElement('div');
-  printContainer.style.position = 'absolute';
-  printContainer.style.top = '0';
-  printContainer.style.left = '0';
-  printContainer.style.width = '794px';
-  printContainer.style.zIndex = '-9999'; // Escondido detrás de todo
-  printContainer.style.margin = '0';
-  printContainer.style.padding = '0';
-
-  // Ajustamos el clon para que encaje al milímetro
+  clone.style.position = 'fixed';
+  clone.style.top = '0';
+  clone.style.left = '0';
   clone.style.margin = '0';
-  clone.style.width = '794px';
-  clone.style.height = '1122px'; // Alto EXACTO de una hoja A4
+  clone.style.zIndex = '-9999'; 
+  document.body.appendChild(clone);
 
-  // Metemos el clon en el estudio, y el estudio a la página
-  printContainer.appendChild(clone);
-  document.body.appendChild(printContainer);
-
-  // Esperar a que los logos carguen
-  const imgs = printContainer.querySelectorAll('img');
+  const imgs = clone.querySelectorAll('img');
   const waits = Array.from(imgs).map(img =>
     img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; })
   );
@@ -142,29 +127,25 @@ function downloadPdf(filename, mode = 'save') {
     const opt = {
       margin:       0,
       filename:     filename,
-      image:        { type: 'jpeg', quality: 0.98 }, 
+      image:        { type: 'jpeg', quality: 1 }, 
       html2canvas:  {
         scale: 2,          
         useCORS: true,
-        width: 794,        // Ancho exacto A4
-        height: 1122,      // Alto exacto A4 (Esto mata a la 2da página)
-        windowWidth: 794,
-        scrollX: 0,
-        scrollY: 0
+        scrollY: 0,
+        scrollX: 0
       },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'px', format: [794, 1122], orientation: 'portrait' }
     };
 
-    // Tomamos la foto y luego eliminamos el clon para no dejar basura
     let result;
     if (mode === 'blob') {
-      result = html2pdf().set(opt).from(printContainer).toPdf().get('pdf').then(pdf => {
-        document.body.removeChild(printContainer); // Limpieza
+      result = html2pdf().set(opt).from(clone).toPdf().get('pdf').then(pdf => {
+        document.body.removeChild(clone); 
         return pdf.output('blob');
       });
     } else {
-      result = html2pdf().set(opt).from(printContainer).save().then(() => {
-        document.body.removeChild(printContainer); // Limpieza
+      result = html2pdf().set(opt).from(clone).save().then(() => {
+        document.body.removeChild(clone);
       });
     }
 
