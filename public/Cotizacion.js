@@ -96,42 +96,46 @@ function updateTotalsPreview() {
   `;
 }
 
-// ========== PDF: opciones centralizadas ==========
+// ========== PDF: opciones ==========
 function getPdfOptions(filename) {
   return {
-    margin: 0,
+    margin: [10, 10, 10, 10],
     filename: filename,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
       scale: 2,
       useCORS: true,
-      scrollX: 0,
-      scrollY: 0,
-      width: 794,
-      windowWidth: 794
+      logging: false
     },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 }
 
-// ========== PDF: clonar sheet fuera del DOM ==========
-function getSheetClone() {
-  const original = document.querySelector('.sheet');
-  const clone = original.cloneNode(true);
-  clone.style.cssText = `
+// ========== PDF: crear wrapper fuera de pantalla ==========
+function createPdfWrapper() {
+  const sheetEl = document.querySelector('.sheet');
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = `
     position: absolute;
+    left: -9999px;
     top: 0;
-    left: 0;
     width: 794px;
     background: white;
+  `;
+  wrapper.innerHTML = sheetEl.outerHTML;
+  document.body.appendChild(wrapper);
+
+  const clone = wrapper.firstElementChild;
+  clone.style.cssText = `
+    width: 794px;
     padding: 24px 32px;
     box-sizing: border-box;
-    z-index: -9999;
-    pointer-events: none;
-    opacity: 1;
+    background: white;
+    box-shadow: none;
+    margin: 0;
   `;
-  document.body.appendChild(clone);
-  return clone;
+
+  return wrapper;
 }
 
 function generatePreview() {
@@ -362,19 +366,20 @@ document.addEventListener('DOMContentLoaded', async function () {
     generatePreview();
 
     const quoteNumber = document.getElementById('quote_number')?.value || 'Borrador';
-    const previewContainer = document.getElementById('preview');
     const opt = getPdfOptions(`cot.001-${quoteNumber}.novotrace.pdf`);
 
     setTimeout(() => {
-      const clone = getSheetClone();
+      const wrapper = createPdfWrapper();
+      const clone = wrapper.firstElementChild;
+
       html2pdf().set(opt).from(clone).toPdf().get('pdf').then(pdf => {
-        document.body.removeChild(clone);
+        document.body.removeChild(wrapper);
         const blob = pdf.output('blob');
         const url = URL.createObjectURL(blob);
         document.getElementById('pdf_viewer').src = url;
         document.getElementById('pdf_modal').classList.remove('hidden');
       });
-    }, 300);
+    }, 400);
   });
 
   // ✅ NUEVA COTIZACIÓN
@@ -445,7 +450,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     try {
       const id     = btn.dataset.id;
-      const number = btn.dataset.number; // ✅ correcto
+      const number = btn.dataset.number;
 
       const [quoteData, itemsData] = await Promise.all([
         fetch(`/quotes/${id}`).then(r => r.json()),
@@ -467,16 +472,18 @@ document.addEventListener('DOMContentLoaded', async function () {
       updateTotalsPreview();
       generatePreview();
 
-      const opt = getPdfOptions(`cot.001-${number}.novotrace.pdf`); // ✅ correcto
+      const opt = getPdfOptions(`cot.001-${number}.novotrace.pdf`);
 
       setTimeout(() => {
-        const clone = getSheetClone();
+        const wrapper = createPdfWrapper();
+        const clone = wrapper.firstElementChild;
+
         html2pdf().set(opt).from(clone).save().then(() => {
-          document.body.removeChild(clone);
+          document.body.removeChild(wrapper);
           btn.innerHTML = originalText;
           btn.disabled = false;
         });
-      }, 150);
+      }, 400);
 
     } catch (err) {
       console.error('Error al descargar desde el historial:', err);
