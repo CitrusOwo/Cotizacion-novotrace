@@ -96,69 +96,52 @@ function updateTotalsPreview() {
   `;
 }
 
-// ========== PDF: genera el PDF directamente desde HTML string ==========
+// ========== PDF: genera el PDF directamente ==========
 function downloadPdf(filename, mode = 'save') {
-  // A4 en px a 96dpi
-  const A4_W = 794;
+  const element = document.querySelector('.sheet');
+  const previewContainer = document.getElementById('preview');
 
-  const sheetEl = document.querySelector('.sheet');
+  // 👉 TRUCO ANTI-CORTE: Forzamos la vista completa temporalmente
+  window.scrollTo(0, 0);
+  previewContainer.scrollLeft = 0;
+  previewContainer.scrollTop = 0;
+  previewContainer.style.overflow = 'visible';
 
-  // Wrapper fuera de pantalla con ancho A4 exacto
-  const wrapper = document.createElement('div');
-  wrapper.style.cssText = `
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 210mm;
-  background: white;
-`;
-  wrapper.innerHTML = sheetEl.outerHTML;
-  document.body.appendChild(wrapper);
-
-  const clone = wrapper.firstElementChild;
-  clone.style.cssText = `
-    width: ${A4_W}px !important;
-    padding: 20px 28px !important;
-    box-sizing: border-box !important;
-    background: white !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-    min-height: unset !important;
-  `;
-
-  // Esperar imágenes
-  const imgs = wrapper.querySelectorAll('img');
+  // Esperar a que las imágenes (logos) carguen bien
+  const imgs = element.querySelectorAll('img');
   const waits = Array.from(imgs).map(img =>
     img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; })
   );
 
   return Promise.all(waits).then(() => {
     const opt = {
-      margin: 0,
-      filename: filename,
-      image: { type: 'jpeg', quality: 1 },
-      html2canvas: {
-        scale: 2,     
-        useCORS: true,
-        windowWidth: A4_W  
+      margin:       0,
+      filename:     filename,
+      image:        { type: 'jpeg', quality: 1 }, // Máxima calidad
+      html2canvas:  {
+        scale: 2,          // Resolución HD
+        useCORS: true,     // Carga logos externos
+        windowWidth: 1024, // Evita que el navegador aplaste el diseño
+        scrollY: 0,
+        scrollX: 0
       },
-      jsPDF: { 
-        unit: 'mm', 
-        format: 'a4', 
-        orientation: 'portrait' 
-      }
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
+    // Procesamos el PDF según si es para previsualizar o descargar
+    let result;
     if (mode === 'blob') {
-      return html2pdf().set(opt).from(clone).toPdf().get('pdf').then(pdf => {
-        document.body.removeChild(wrapper);
+      result = html2pdf().set(opt).from(element).toPdf().get('pdf').then(pdf => {
+        previewContainer.style.overflow = 'auto'; // Restaurar vista original
         return pdf.output('blob');
       });
     } else {
-      return html2pdf().set(opt).from(clone).save().then(() => {
-        document.body.removeChild(wrapper);
+      result = html2pdf().set(opt).from(element).save().then(() => {
+        previewContainer.style.overflow = 'auto'; // Restaurar vista original
       });
     }
+
+    return result;
   });
 }
 

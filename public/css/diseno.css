@@ -996,34 +996,12 @@ textarea {
 }
 
 .sheet {
-  width: 210mm;
-  min-height: 297mm;
+  width: 794px;
+  min-height: 1123px; 
   margin: 0 auto;
-  padding: 15mm;
+  padding: 40px;
   box-sizing: border-box;
   background: white;
-}
-
-@media print {
-  @page {
-    size: A4;
-    margin: 0;
-  }
-
-  body {
-    margin: 0;
-  }
-
-  .sheet {
-    page-break-after: avoid;
-    page-break-inside: avoid;
-  }
-
-  .payment-display,
-  .notes-section,
-  .totals-box {
-    page-break-inside: avoid;
-  }
 }
 
 .sheet table {
