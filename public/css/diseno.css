@@ -12,11 +12,6 @@
   --transition: all 0.2s ease;
 }
 
-@page {
-  margin: 15mm 10mm;
-  size: A4;
-}
-
 * {
   box-sizing: border-box;
   margin: 0;
@@ -702,12 +697,23 @@ textarea {
   
   /* Ajustar la hoja para impresión */
   .sheet {
-  width: 100%;
-  max-width: 794px;
-  padding: 20px 24px; /* reduce esto */
+  width: 794px;
+  min-height: auto;
+  padding: 16px 20px;
   margin: 0 auto;
   box-sizing: border-box;
 }
+
+.sheet {
+  page-break-inside: avoid;
+}
+
+.payment-display,
+.notes-section,
+.totals-box {
+  page-break-inside: avoid;
+}
+
   .quote-header {
     margin-bottom: 20px;
     padding-bottom: 15px;

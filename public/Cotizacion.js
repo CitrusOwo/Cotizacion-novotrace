@@ -139,14 +139,16 @@ function downloadPdf(filename, mode = 'save') {
       filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: {
-        scale: 1,
-        useCORS: true,
-        width: A4_W,
-        windowWidth: A4_W,
-        scrollX: 0,
-        scrollY: 0
+      scale: 2,
+      useCORS: true,
+      width: A4_W,
+      windowWidth: A4_W
       },
-      jsPDF: { unit: 'px', format: [A4_W, 1123], orientation: 'portrait', hotfixes: ['px_scaling'] }
+      jsPDF: { 
+      unit: 'px', 
+      format: 'a4', 
+      orientation: 'portrait' 
+      }
     };
 
     if (mode === 'blob') {
