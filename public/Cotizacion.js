@@ -101,13 +101,15 @@ function downloadPdf(filename, mode = 'save') {
   const element = document.querySelector('.sheet');
   const previewContainer = document.getElementById('preview');
 
-  // 👉 TRUCO ANTI-CORTE: Forzamos la vista completa temporalmente
+  const originalMargin = element.style.margin;
+
   window.scrollTo(0, 0);
   previewContainer.scrollLeft = 0;
   previewContainer.scrollTop = 0;
   previewContainer.style.overflow = 'visible';
+  
+  element.style.margin = '0';
 
-  // Esperar a que las imágenes (logos) carguen bien
   const imgs = element.querySelectorAll('img');
   const waits = Array.from(imgs).map(img =>
     img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; })
@@ -117,27 +119,29 @@ function downloadPdf(filename, mode = 'save') {
     const opt = {
       margin:       0,
       filename:     filename,
-      image:        { type: 'jpeg', quality: 1 }, // Máxima calidad
+      image:        { type: 'jpeg', quality: 1 },
       html2canvas:  {
-        scale: 2,          // Resolución HD
-        useCORS: true,     // Carga logos externos
-        windowWidth: 1024, // Evita que el navegador aplaste el diseño
+        scale: 2,     
+        useCORS: true,
+        width: 794,
+        windowWidth: 794, 
         scrollY: 0,
         scrollX: 0
       },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // Procesamos el PDF según si es para previsualizar o descargar
     let result;
     if (mode === 'blob') {
       result = html2pdf().set(opt).from(element).toPdf().get('pdf').then(pdf => {
-        previewContainer.style.overflow = 'auto'; // Restaurar vista original
+        previewContainer.style.overflow = 'auto'; 
+        element.style.margin = originalMargin;
         return pdf.output('blob');
       });
     } else {
       result = html2pdf().set(opt).from(element).save().then(() => {
-        previewContainer.style.overflow = 'auto'; // Restaurar vista original
+        previewContainer.style.overflow = 'auto'; 
+        element.style.margin = originalMargin;
       });
     }
 
