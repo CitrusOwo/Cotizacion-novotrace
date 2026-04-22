@@ -100,18 +100,19 @@ function updateTotalsPreview() {
 function downloadPdf(filename, mode = 'save') {
   const element = document.querySelector('.sheet');
   const previewContainer = document.getElementById('preview');
-  const previewWrap = document.querySelector('.preview-wrap'); 
+  const previewWrap = document.querySelector('.preview-wrap');
 
   const origMargin = element.style.margin;
   const origOverflowPreview = previewContainer.style.overflow;
   const origMaxHeightWrap = previewWrap.style.maxHeight;
   const origOverflowWrap = previewWrap.style.overflow;
 
+  // 👉 1. Desplegamos TODO
   window.scrollTo(0, 0);
-  previewWrap.style.maxHeight = 'none';    
-  previewWrap.style.overflow = 'visible';   
+  previewWrap.style.maxHeight = 'none';      
+  previewWrap.style.overflow = 'visible';    
   previewContainer.style.overflow = 'visible'; 
-  element.style.margin = '0';              
+  element.style.margin = '0';                
 
   const imgs = element.querySelectorAll('img');
   const waits = Array.from(imgs).map(img =>
@@ -119,41 +120,42 @@ function downloadPdf(filename, mode = 'save') {
   );
 
   return Promise.all(waits).then(() => {
-    const opt = {
-      margin:       0,
-      filename:     filename,
-      image:        { type: 'jpeg', quality: 0.98 }, 
-      html2canvas:  {
-        scale: 2,          
-        useCORS: true,
-        width: 794,        
-        height: 1123,      
-        windowWidth: 794,
-        scrollX: 0,
-        scrollY: 0
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const opt = {
+          margin:       0,
+          filename:     filename,
+          image:        { type: 'jpeg', quality: 0.98 }, 
+          html2canvas:  {
+            scale: 2,          
+            useCORS: true,
+            width: 794,        
+            windowWidth: 794,
+            scrollX: 0,
+            scrollY: 0
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
 
-    let result;
-    if (mode === 'blob') {
-      result = html2pdf().set(opt).from(element).toPdf().get('pdf').then(pdf => {
-        previewWrap.style.maxHeight = origMaxHeightWrap;
-        previewWrap.style.overflow = origOverflowWrap;
-        previewContainer.style.overflow = origOverflowPreview;
-        element.style.margin = origMargin; 
-        return pdf.output('blob');
-      });
-    } else {
-      result = html2pdf().set(opt).from(element).save().then(() => {
-        previewWrap.style.maxHeight = origMaxHeightWrap;
-        previewWrap.style.overflow = origOverflowWrap;
-        previewContainer.style.overflow = origOverflowPreview;
-        element.style.margin = origMargin;
-      });
-    }
-
-    return result;
+        if (mode === 'blob') {
+          html2pdf().set(opt).from(element).toPdf().get('pdf').then(pdf => {
+            previewWrap.style.maxHeight = origMaxHeightWrap;
+            previewWrap.style.overflow = origOverflowWrap;
+            previewContainer.style.overflow = origOverflowPreview;
+            element.style.margin = origMargin; 
+            resolve(pdf.output('blob'));
+          });
+        } else {
+          html2pdf().set(opt).from(element).save().then(() => {
+            previewWrap.style.maxHeight = origMaxHeightWrap;
+            previewWrap.style.overflow = origOverflowWrap;
+            previewContainer.style.overflow = origOverflowPreview;
+            element.style.margin = origMargin;
+            resolve();
+          });
+        }
+      }, 150); 
+    });
   });
 }
 
