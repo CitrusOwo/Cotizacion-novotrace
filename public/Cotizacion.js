@@ -11,7 +11,6 @@ function customConfirm({ icon = '❓', title = '¿Estás seguro?', msg = '', okC
     const cleanup = (result) => {
       overlay.classList.add('hidden');
       const cancelBtn = document.getElementById('confirm_cancel');
-
       okBtn.replaceWith(okBtn.cloneNode(true));
       cancelBtn.replaceWith(cancelBtn.cloneNode(true));
       resolve(result);
@@ -23,20 +22,14 @@ function customConfirm({ icon = '❓', title = '¿Estás seguro?', msg = '', okC
 
 let items = [];
 const LOGO_PATH = '/imagenes/Recurso 43.png';
-
 let saveTimeout;
 let lastSavedQuote = '';
 
-const currencySymbols = {
-  'USD': '$',
-  'PEN': 'S/',
-  'EUR': '€'
-};
+const currencySymbols = { 'USD': '$', 'PEN': 'S/', 'EUR': '€' };
 
 const DEFAULT_TERMS = `Tiempo de entrega: inmediato sujeto a stock.
 Estaremos a disposición para cualquier aclaración que sea necesaria.`;
 
-// ========== NÚMERO DE COTIZACIÓN — solo el backend manda ==========
 async function fetchNextQuoteNumber() {
   try {
     const res = await fetch('/next-quote-number');
@@ -50,11 +43,7 @@ async function fetchNextQuoteNumber() {
 }
 
 function formatMoney(v, curr = 'USD') {
-  const symbol = currencySymbols[curr] || '$';
-  return new Intl.NumberFormat('es-PE', {
-  style: 'currency',
-  currency: curr
-}).format(v);
+  return new Intl.NumberFormat('es-PE', { style: 'currency', currency: curr }).format(v);
 }
 
 function escapeHtml(str) {
@@ -72,95 +61,58 @@ function getCurrency() {
 function renderItemsTable() {
   const itemsBody = document.getElementById('items_body');
   itemsBody.innerHTML = '';
-
   items.forEach((it) => {
     const tr = document.createElement('tr');
     tr.className = 'fade-in';
-
     tr.innerHTML = `
-      <td>
-        <input
-          data-id="${it.id}"
-          data-field="desc"
-          value="${escapeHtml(it.desc ?? '')}"
-          placeholder="Descripción"
-          style="width:100%;border:0;background:transparent;font-size:13px"
-        />
-      </td>
-      <td>
-        <input
-          data-id="${it.id}"
-          data-field="qty"
-          type="number"
-          min="1"
-          value="${it.qty ?? 1}"
-          style="width:100%;border:0;background:transparent;font-size:13px;text-align:center"
-        />
-      </td>
-      <td>
-        <input
-          data-id="${it.id}"
-          data-field="price"
-          type="number"
-          min="0"
-          step="0.01"
-          value="${it.price ?? 0}"
-          style="width:100%;border:0;background:transparent;font-size:13px;text-align:right"
-        />
-      </td>
-      <td class="total-cell" style="text-align:right;font-size:13px;font-weight:600">
-        ${formatMoney((it.qty ?? 0) * (it.price ?? 0), getCurrency())}
-      </td>
-      <td style="text-align:center">
-        <button
-          class="btn ghost small"
-          data-action="remove"
-          data-id="${it.id}"
-          style="padding:4px 8px"
-          title="Eliminar item"
-        >✕</button>
-      </td>
+      <td><input data-id="${it.id}" data-field="desc" value="${escapeHtml(it.desc ?? '')}" placeholder="Descripción" style="width:100%;border:0;background:transparent;font-size:13px"/></td>
+      <td><input data-id="${it.id}" data-field="qty" type="number" min="1" value="${it.qty ?? 1}" style="width:100%;border:0;background:transparent;font-size:13px;text-align:center"/></td>
+      <td><input data-id="${it.id}" data-field="price" type="number" min="0" step="0.01" value="${it.price ?? 0}" style="width:100%;border:0;background:transparent;font-size:13px;text-align:right"/></td>
+      <td class="total-cell" style="text-align:right;font-size:13px;font-weight:600">${formatMoney((it.qty ?? 0) * (it.price ?? 0), getCurrency())}</td>
+      <td style="text-align:center"><button class="btn ghost small" data-action="remove" data-id="${it.id}" style="padding:4px 8px" title="Eliminar item">✕</button></td>
     `;
-
     itemsBody.appendChild(tr);
   });
-
   updateTotalsPreview();
-
   clearTimeout(saveTimeout);
-saveTimeout = setTimeout(() => {
-  if (document.getElementById('auto_update')?.checked) {
-    generatePreview();
-  }
+  saveTimeout = setTimeout(() => {
+    if (document.getElementById('auto_update')?.checked) generatePreview();
   }, 300);
 }
 
 function calculateTotals() {
-  const subtotal = items.reduce((s, it) => {
-    return s + (Number(it.qty || 0) * Number(it.price || 0));
-  }, 0);
+  const subtotal = items.reduce((s, it) => s + (Number(it.qty || 0) * Number(it.price || 0)), 0);
   const igv = subtotal * 0.18;
-  const total = subtotal + igv;
-  return { subtotal, igv, total };
+  return { subtotal, igv, total: subtotal + igv };
 }
 
 function updateTotalsPreview() {
   const totals = calculateTotals();
   const curr = getCurrency();
   document.getElementById('totals_preview').innerHTML = `
-    <div class="totals-preview-row">
-      <span>Subtotal:</span>
-      <span>${formatMoney(totals.subtotal, curr)}</span>
-    </div>
-    <div class="totals-preview-row">
-      <span>IGV (18%):</span>
-      <span>${formatMoney(totals.igv, curr)}</span>
-    </div>
-    <div class="totals-preview-row total">
-      <span>TOTAL:</span>
-      <span>${formatMoney(totals.total, curr)}</span>
-    </div>
+    <div class="totals-preview-row"><span>Subtotal:</span><span>${formatMoney(totals.subtotal, curr)}</span></div>
+    <div class="totals-preview-row"><span>IGV (18%):</span><span>${formatMoney(totals.igv, curr)}</span></div>
+    <div class="totals-preview-row total"><span>TOTAL:</span><span>${formatMoney(totals.total, curr)}</span></div>
   `;
+}
+
+// ========== PDF OPTIONS — función centralizada ==========
+function getPdfOptions(filename) {
+  return {
+    margin: [8, 8, 8, 8],
+    filename: filename,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: 794,
+      windowHeight: 1123
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: 'avoid-all' }
+  };
 }
 
 function generatePreview() {
@@ -181,9 +133,7 @@ function generatePreview() {
   const totals = calculateTotals();
 
   const dateObj = new Date(quoteDate + 'T00:00:00');
-  const formattedDate = dateObj.toLocaleDateString('es-PE', {
-    year: 'numeric', month: '2-digit', day: '2-digit'
-  });
+  const formattedDate = dateObj.toLocaleDateString('es-PE', { year: 'numeric', month: '2-digit', day: '2-digit' });
 
   let itemsHtml = '';
   items.forEach((it) => {
@@ -194,10 +144,8 @@ function generatePreview() {
         <td style="text-align:center">${it.qty || 0}</td>
         <td style="text-align:right">${formatMoney(it.price || 0, curr)}</td>
         <td style="text-align:right;font-weight:600">${formatMoney(lineTotal, curr)}</td>
-      </tr>
-    `;
+      </tr>`;
   });
-
   if (items.length === 0) {
     itemsHtml = '<tr><td colspan="4" style="text-align:center;color:#999;padding:30px">No hay items agregados</td></tr>';
   }
@@ -220,34 +168,25 @@ function generatePreview() {
         <div class="quote-box-number">${quoteNumber}</div>
       </div>
     </div>
-
     <table class="client-data-table">
       <tbody>
         <tr>
-          <td class="label-cell">FECHA:</td>
-          <td class="data-cell">${formattedDate}</td>
-          <td class="label-cell">DIRECCIÓN:</td>
-          <td class="data-cell">${escapeHtml(clientAddress)}</td>
+          <td class="label-cell">FECHA:</td><td class="data-cell">${formattedDate}</td>
+          <td class="label-cell">DIRECCIÓN:</td><td class="data-cell">${escapeHtml(clientAddress)}</td>
         </tr>
         <tr>
-          <td class="label-cell">RUC:</td>
-          <td class="data-cell">${escapeHtml(clientRuc)}</td>
-          <td class="label-cell">CIUDAD:</td>
-          <td class="data-cell">${escapeHtml(clientCity)}</td>
+          <td class="label-cell">RUC:</td><td class="data-cell">${escapeHtml(clientRuc)}</td>
+          <td class="label-cell">CIUDAD:</td><td class="data-cell">${escapeHtml(clientCity)}</td>
         </tr>
         <tr>
-          <td class="label-cell">CLIENTE:</td>
-          <td class="data-cell">${escapeHtml(clientName)}</td>
-          <td class="label-cell">TELEFONO:</td>
-          <td class="data-cell">${escapeHtml(clientPhone)}</td>
+          <td class="label-cell">CLIENTE:</td><td class="data-cell">${escapeHtml(clientName)}</td>
+          <td class="label-cell">TELEFONO:</td><td class="data-cell">${escapeHtml(clientPhone)}</td>
         </tr>
         <tr>
-          <td class="label-cell">E-MAIL:</td>
-          <td class="data-cell" colspan="3">${escapeHtml(clientEmail)}</td>
+          <td class="label-cell">E-MAIL:</td><td class="data-cell" colspan="3">${escapeHtml(clientEmail)}</td>
         </tr>
       </tbody>
     </table>
-
     <div class="items-section">
       <table class="items">
         <thead>
@@ -260,7 +199,6 @@ function generatePreview() {
         </thead>
         <tbody>${itemsHtml}</tbody>
       </table>
-
       <div class="totals-box">
         <div class="total-row"><span>Subtotal</span><span>${formatMoney(totals.subtotal, curr)}</span></div>
         <div class="total-row"><span>Descuento</span><span style="color:#dc3545">-${currencySymbols[curr] || '$'} 0.00</span></div>
@@ -268,7 +206,6 @@ function generatePreview() {
         <div class="total-row final"><span>TOTAL</span><span>${formatMoney(totals.total, curr)}</span></div>
       </div>
     </div>
-
     ${commercialNotes ? `
     <div class="notes-section">
       <h3>TÉRMINOS Y CONDICIONES:</h3>
@@ -281,16 +218,10 @@ function generatePreview() {
       <p>• Estaremos a disposición para cualquier aclaración que sea necesaria.</p>
       <p style="margin-top:12px"><strong>Validez de la oferta:</strong> ${validityDays} días desde la fecha de emisión.</p>
     </div>`}
-
     <div class="payment-display">
       <h3>Cuentas para pagos:</h3>
       <table class="payment-table">
-        <thead>
-          <tr>
-            <th style="width:100px">BANCO</th>
-            <th>DATOS DE CUENTA</th>
-          </tr>
-        </thead>
+        <thead><tr><th style="width:100px">BANCO</th><th>DATOS DE CUENTA</th></tr></thead>
         <tbody>
           <tr>
             <td class="bank-logo"><img src="/imagenes/BCP.png" alt="BCP" /></td>
@@ -301,9 +232,7 @@ function generatePreview() {
           </tr>
           <tr>
             <td class="bank-logo"><img src="/imagenes/BBVA.png" alt="BBVA" /></td>
-            <td class="account-data">
-              <div><strong>Cuenta:</strong> 0011-0323-0200559998-36</div>
-            </td>
+            <td class="account-data"><div><strong>Cuenta:</strong> 0011-0323-0200559998-36</div></td>
           </tr>
         </tbody>
       </table>
@@ -312,13 +241,8 @@ function generatePreview() {
   `;
 }
 
-// ========== NUEVA COTIZACIÓN ==========
 function saveNow() {
-  const hasData =
-    items.length ||
-    document.getElementById('client_name').value ||
-    document.getElementById('client_ruc').value;
-
+  const hasData = items.length || document.getElementById('client_name').value || document.getElementById('client_ruc').value;
   if (!hasData) return Promise.resolve({ ok: false });
 
   const data = {
@@ -340,35 +264,21 @@ function saveNow() {
     body: JSON.stringify(data)
   })
   .then(res => res.json())
-  .then(res => {
-    console.log('Guardado:', res);
-    return res;
-  })
-  .catch(err => {
-    console.error('ERROR GUARDANDO:', err);
-    return { ok: false };
-  });
+  .then(res => { console.log('Guardado:', res); return res; })
+  .catch(err => { console.error('ERROR GUARDANDO:', err); return { ok: false }; });
 }
 
 async function newQuote() {
   const res = await saveNow();
-
-  if (!res?.ok) {
-    alert('No se guardó la cotización');
-    return;
-  }
-
+  if (!res?.ok) { alert('No se guardó la cotización'); return; }
   await fetchNextQuoteNumber();
-
   items = [];
-
-  document.getElementById('client_name').value = '';
-  document.getElementById('client_ruc').value = '';
+  document.getElementById('client_name').value    = '';
+  document.getElementById('client_ruc').value     = '';
   document.getElementById('client_address').value = '';
-  document.getElementById('client_city').value = '';
-  document.getElementById('client_phone').value = '';
-  document.getElementById('client_email').value = '';
-
+  document.getElementById('client_city').value    = '';
+  document.getElementById('client_phone').value   = '';
+  document.getElementById('client_email').value   = '';
   renderItemsTable();
   updateTotalsPreview();
 }
@@ -377,35 +287,24 @@ async function newQuote() {
 document.addEventListener('DOMContentLoaded', async function () {
   const itemsBody = document.getElementById('items_body');
 
-  // ✅ El backend da el número real al cargar
   await fetchNextQuoteNumber();
   document.getElementById('quote_date').value = new Date().toISOString().slice(0, 10);
 
   const savedTerms = localStorage.getItem('terms');
   document.getElementById('commercial_notes').value = savedTerms || DEFAULT_TERMS;
-
   document.getElementById('commercial_notes').addEventListener('input', (e) => {
     localStorage.setItem('terms', e.target.value);
   });
 
   // ===== ITEMS =====
   itemsBody.addEventListener('input', function (e) {
-    const el    = e.target;
-    const id    = el.dataset.id;
+    const el = e.target;
     const field = el.dataset.field;
     if (!field) return;
-
-    const item = items.find(i => i.id === id);
+    const item = items.find(i => i.id === el.dataset.id);
     if (!item) return;
-
     item[field] = field === 'desc' ? el.value : Number(el.value);
-
-    const totalCell = el.closest('tr').querySelector('.total-cell');
-    totalCell.textContent = formatMoney(
-      (item.qty || 0) * (item.price || 0),
-      getCurrency()
-    );
-
+    el.closest('tr').querySelector('.total-cell').textContent = formatMoney((item.qty || 0) * (item.price || 0), getCurrency());
     updateTotalsPreview();
     if (document.getElementById('auto_update')?.checked) generatePreview();
   });
@@ -422,225 +321,29 @@ document.addEventListener('DOMContentLoaded', async function () {
     renderItemsTable();
   });
 
-  // ✅ LIMPIAR ITEMS
   document.getElementById('clear_items').addEventListener('click', async () => {
-    const ok = await customConfirm({
-      icon: '🧹',
-      title: '¿Eliminar todos los items?',
-      msg: 'Se borrarán todos los productos de esta cotización.',
-      okClass: 'danger',
-      okText: 'Eliminar todo'
-    });
+    const ok = await customConfirm({ icon: '🧹', title: '¿Eliminar todos los items?', msg: 'Se borrarán todos los productos de esta cotización.', okClass: 'danger', okText: 'Eliminar todo' });
     if (ok) { items.length = 0; renderItemsTable(); }
   });
 
-  const fieldsToWatch = [
-    'company_name', 'company_email', 'quote_number', 'quote_date',
-    'client_name', 'client_ruc', 'client_address', 'client_city',
-    'client_phone', 'client_email', 'currency', 'validity_days', 'commercial_notes'
-  ];
+  const fieldsToWatch = ['company_name','company_email','quote_number','quote_date','client_name','client_ruc','client_address','client_city','client_phone','client_email','currency','validity_days','commercial_notes'];
   fieldsToWatch.forEach(id => {
     const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener('input', () => {
-        updateTotalsPreview();
-        if (document.getElementById('auto_update')?.checked) generatePreview();
-      });
-    }
+    if (el) el.addEventListener('input', () => {
+      updateTotalsPreview();
+      if (document.getElementById('auto_update')?.checked) generatePreview();
+    });
   });
 
   document.getElementById('preview_btn').addEventListener('click', generatePreview);
 
-// ✅ IMPRIMIR / PDF — Muestra el PDF en el Modal
-document.getElementById('print_btn').addEventListener('click', async () => {
-  await saveNow();
-  generatePreview();
-  
-  const element = document.querySelector('.sheet'); 
-  const previewContainer = document.getElementById('preview');
-  
-  // 👉 TRUCO ANTI-CORTE: Forzamos la vista completa temporalmente
-  window.scrollTo(0, 0);
-  previewContainer.scrollLeft = 0;
-  previewContainer.style.overflow = 'visible'; 
-
-  const quoteNumber = document.getElementById('quote_number')?.value || 'Borrador';
-
-  const opt = {
-  margin: [8, 8, 8, 8],
-  filename: `cot.001-${quoteNumber}.novotrace.pdf`,
-  image: { type: 'jpeg', quality: 0.98 },
-  html2canvas: {
-    scale: 2,
-    useCORS: true,
-    scrollX: 0,
-    scrollY: 0,
-    windowWidth: 794,     
-    windowHeight: 1123     
-  },
-  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-  pagebreak: { mode: 'avoid-all' } 
-};
-
-  setTimeout(() => {
-    html2pdf()
-      .set(opt)
-      .from(element)
-      .toPdf()
-      .get('pdf')
-      .then(pdf => {
-        const blob = pdf.output('blob');
-        const url = URL.createObjectURL(blob);
-
-        document.getElementById('pdf_viewer').src = url;
-        document.getElementById('pdf_modal').classList.remove('hidden');
-        
-        previewContainer.style.overflow = 'auto';
-      });
-  }, 300);
-});
-
-  // ✅ NUEVA COTIZACIÓN
-  document.getElementById('new_quote_btn').addEventListener('click', async () => {
-    const ok = await customConfirm({
-      icon: '📄',
-      title: '¿Crear nueva cotización?',
-      msg: 'Se guardará la actual y se limpiará el formulario.',
-      okClass: 'success-confirm',
-      okText: 'Crear nueva'
-    });
-    if (ok) await newQuote();
-  });
-
-// ===========================
-// ✅ HISTORIAL
-// ===========================
-document.getElementById('history_btn').addEventListener('click', () => {
-  fetch('/quotes')
-    .then(res => res.json())
-    .then(history => {
-      console.log(history); 
-      const modal = document.getElementById('history_modal');
-      const body  = document.getElementById('history_body');
-      body.innerHTML = '';
-
-      if (!history.length) {
-        body.innerHTML = `
-          <tr>
-            <td colspan="9" style="text-align:center;padding:20px;color:#999">
-              No hay cotizaciones guardadas
-            </td>
-          </tr>`;
-      } else {
-        history.forEach(q => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${q.quote_number}</td>
-            <td>${q.client_name  || '-'}</td>
-            <td>${q.client_ruc   || '-'}</td>
-            <td>${q.client_email || '-'}</td>
-            <td>${q.client_phone || '-'}</td>
-            <td>${q.client_city  || '-'}</td>
-            <td>${new Date(q.created_at || Date.now()).toLocaleDateString('es-PE')}</td>
-            <td>${formatMoney(q.total || 0, q.currency || 'USD')}</td>
-            <td style="display:flex;gap:6px;justify-content:center">
-
-              <!-- 📄 DESCARGAR -->
-              <button 
-                class="btn ghost small download-btn"
-                data-id="${q.id}"
-                data-number="${q.quote_number}"
-                title="Descargar PDF"
-                style="padding:4px 8px"
-              >
-                📄
-              </button>
-
-              <!-- 🗑️ ELIMINAR -->
-              <button 
-                class="btn ghost small delete-quote-btn"
-                data-id="${q.id}"
-                title="Eliminar"
-                style="color:#dc3545;padding:4px 8px"
-              >
-                🗑️
-              </button>
-
-            </td>
-          `;
-          body.appendChild(tr);
-        });
-
-        // ===========================
-        // ✅ ELIMINAR
-        // ===========================
-        body.querySelectorAll('.delete-quote-btn').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            const ok = await customConfirm({
-              icon: '🗑️',
-              title: '¿Eliminar cotización?',
-              msg: 'Esta acción no se puede deshacer.',
-              okClass: 'danger',
-              okText: 'Eliminar'
-            });
-
-            if (!ok) return;
-
-            fetch(`/quotes/${btn.dataset.id}`, { method: 'DELETE' })
-              .then(res => res.json())
-              .then(() => btn.closest('tr').remove())
-              .catch(err => console.error(err));
-          });
-        });
-      }
-
-      modal.classList.remove('hidden');
-    })
-    .catch(err => console.error(err));
-});
-
-// ===========================
-// ✅ DESCARGAR PDF DESDE HISTORIAL (VERSIÓN TURBO 🚀)
-// ===========================
-document.addEventListener('click', async (e) => {
-  const btn = e.target.closest('.download-btn');
-  if (!btn) return;
-
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '⏳'; 
-  btn.disabled = true;
-
-  try {
-    const id = btn.dataset.id;
-    const number = btn.dataset.number;
-
-    const [quoteData, itemsData] = await Promise.all([
-      fetch(`/quotes/${id}`).then(r => r.json()),
-      fetch(`/quotes/${id}/items`).then(r => r.json())
-    ]);
-
-    document.getElementById('quote_number').value = quoteData.quote_number || '';
-    document.getElementById('client_name').value = quoteData.client_name || '';
-    document.getElementById('client_ruc').value = quoteData.client_ruc || '';
-    document.getElementById('client_email').value = quoteData.client_email || '';
-    document.getElementById('client_phone').value = quoteData.client_phone || '';
-    document.getElementById('client_city').value = quoteData.client_city || '';
-
-    if(document.getElementById('client_address')) 
-       document.getElementById('client_address').value = quoteData.client_address || '';
-
-    items = itemsData.map(it => ({
-      id: crypto.randomUUID(),
-      desc: it.desc,
-      qty: it.qty,
-      price: it.price
-    }));
-
-    renderItemsTable();
-    updateTotalsPreview();
+  // ✅ IMPRIMIR / PDF
+  document.getElementById('print_btn').addEventListener('click', async () => {
+    await saveNow();
     generatePreview();
 
-    const fileName = `cot.001-${number}.novotrace.pdf`;
+    // ✅ quoteNumber definido correctamente aquí
+    const quoteNumber = document.getElementById('quote_number')?.value || 'Borrador';
     const element = document.querySelector('.sheet');
     const previewContainer = document.getElementById('preview');
 
@@ -648,71 +351,158 @@ document.addEventListener('click', async (e) => {
     previewContainer.scrollLeft = 0;
     previewContainer.style.overflow = 'visible';
 
-    const opt = {
-    margin: [8, 8, 8, 8],
-    filename: `cot.001-${quoteNumber}.novotrace.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: {
-    scale: 2,
-    useCORS: true,
-    scrollX: 0,
-    scrollY: 0,
-    windowWidth: 794,     
-    windowHeight: 1123    
-  },
-  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-  pagebreak: { mode: 'avoid-all' } 
-};
+    const opt = getPdfOptions(`cot.001-${quoteNumber}.novotrace.pdf`);
 
     setTimeout(() => {
-      html2pdf().set(opt).from(element).save().then(() => {
-        // 👉 Restauramos el botón y el contenedor
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+      html2pdf().set(opt).from(element).toPdf().get('pdf').then(pdf => {
+        const blob = pdf.output('blob');
+        const url = URL.createObjectURL(blob);
+        document.getElementById('pdf_viewer').src = url;
+        document.getElementById('pdf_modal').classList.remove('hidden');
         previewContainer.style.overflow = 'auto';
       });
-    }, 150);
+    }, 300);
+  });
 
-  } catch (err) {
-    console.error('Error al descargar desde el historial:', err);
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-    alert('Hubo un error al descargar.');
-  }
-});
+  // ✅ NUEVA COTIZACIÓN
+  document.getElementById('new_quote_btn').addEventListener('click', async () => {
+    const ok = await customConfirm({ icon: '📄', title: '¿Crear nueva cotización?', msg: 'Se guardará la actual y se limpiará el formulario.', okClass: 'success-confirm', okText: 'Crear nueva' });
+    if (ok) await newQuote();
+  });
 
-// ===========================
-// ✅ CERRAR HISTORIAL
-// ===========================
+  // ===========================
+  // ✅ HISTORIAL
+  // ===========================
+  document.getElementById('history_btn').addEventListener('click', () => {
+    fetch('/quotes')
+      .then(res => res.json())
+      .then(history => {
+        const modal = document.getElementById('history_modal');
+        const body  = document.getElementById('history_body');
+        body.innerHTML = '';
+
+        if (!history.length) {
+          body.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:#999">No hay cotizaciones guardadas</td></tr>`;
+        } else {
+          history.forEach(q => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${q.quote_number}</td>
+              <td>${q.client_name  || '-'}</td>
+              <td>${q.client_ruc   || '-'}</td>
+              <td>${q.client_email || '-'}</td>
+              <td>${q.client_phone || '-'}</td>
+              <td>${q.client_city  || '-'}</td>
+              <td>${new Date(q.created_at || Date.now()).toLocaleDateString('es-PE')}</td>
+              <td>${formatMoney(q.total || 0, q.currency || 'USD')}</td>
+              <td style="display:flex;gap:6px;justify-content:center">
+                <button class="btn ghost small download-btn" data-id="${q.id}" data-number="${q.quote_number}" title="Descargar PDF" style="padding:4px 8px">📄</button>
+                <button class="btn ghost small delete-quote-btn" data-id="${q.id}" title="Eliminar" style="color:#dc3545;padding:4px 8px">🗑️</button>
+              </td>
+            `;
+            body.appendChild(tr);
+          });
+
+          body.querySelectorAll('.delete-quote-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const ok = await customConfirm({ icon: '🗑️', title: '¿Eliminar cotización?', msg: 'Esta acción no se puede deshacer.', okClass: 'danger', okText: 'Eliminar' });
+              if (!ok) return;
+              fetch(`/quotes/${btn.dataset.id}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(() => btn.closest('tr').remove())
+                .catch(err => console.error(err));
+            });
+          });
+        }
+        modal.classList.remove('hidden');
+      })
+      .catch(err => console.error(err));
+  });
+
+  // ===========================
+  // ✅ DESCARGAR PDF DESDE HISTORIAL
+  // ===========================
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.download-btn');
+    if (!btn) return;
+
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳';
+    btn.disabled = true;
+
+    try {
+      const id     = btn.dataset.id;
+      const number = btn.dataset.number; // ✅ 'number' definido correctamente aquí
+
+      const [quoteData, itemsData] = await Promise.all([
+        fetch(`/quotes/${id}`).then(r => r.json()),
+        fetch(`/quotes/${id}/items`).then(r => r.json())
+      ]);
+
+      document.getElementById('quote_number').value  = quoteData.quote_number || '';
+      document.getElementById('client_name').value   = quoteData.client_name  || '';
+      document.getElementById('client_ruc').value    = quoteData.client_ruc   || '';
+      document.getElementById('client_email').value  = quoteData.client_email || '';
+      document.getElementById('client_phone').value  = quoteData.client_phone || '';
+      document.getElementById('client_city').value   = quoteData.client_city  || '';
+      if (document.getElementById('client_address'))
+        document.getElementById('client_address').value = quoteData.client_address || '';
+
+      items = itemsData.map(it => ({ id: crypto.randomUUID(), desc: it.desc, qty: it.qty, price: it.price }));
+
+      renderItemsTable();
+      updateTotalsPreview();
+      generatePreview();
+
+      const element = document.querySelector('.sheet');
+      const previewContainer = document.getElementById('preview');
+
+      window.scrollTo(0, 0);
+      previewContainer.scrollLeft = 0;
+      previewContainer.style.overflow = 'visible';
+
+      // ✅ 'number' usado correctamente
+      const opt = getPdfOptions(`cot.001-${number}.novotrace.pdf`);
+
+      setTimeout(() => {
+        html2pdf().set(opt).from(element).save().then(() => {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          previewContainer.style.overflow = 'auto';
+        });
+      }, 150);
+
+    } catch (err) {
+      console.error('Error al descargar desde el historial:', err);
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      alert('Hubo un error al descargar.');
+    }
+  });
+
+  // ✅ CERRAR HISTORIAL
   document.addEventListener('click', (e) => {
-  const btnCerrar = e.target.closest('#close_history');
-  
-  if (btnCerrar) {
-    document.getElementById('history_modal').classList.add('hidden');
+    if (e.target.closest('#close_history')) {
+      document.getElementById('history_modal').classList.add('hidden');
+    }
+  });
+
+  // ✅ INIT
+  async function initApp() {
+    await fetchNextQuoteNumber();
+    if (items.length === 0) {
+      items.push({ id: crypto.randomUUID(), desc: 'Nuevo producto/servicio', qty: 1, price: 0 });
+    }
+    renderItemsTable();
+    updateTotalsPreview();
+    generatePreview();
   }
+
+  initApp();
 });
-
-// ===========================
-// ✅ INIT (Carga Inicial)
-// ===========================
-async function initApp() {
-  await fetchNextQuoteNumber();
-  
-  if (items.length === 0) {
-    items.push({ id: crypto.randomUUID(), desc: 'Nuevo producto/servicio', qty: 1, price: 0 });
-  }
-  
-  renderItemsTable();
-  updateTotalsPreview();
-  generatePreview();
-}
-
-initApp();
-
-}); 
 
 // ✅ CERRAR VISOR DE PDF
 document.getElementById('close_pdf')?.addEventListener('click', () => {
   document.getElementById('pdf_modal').classList.add('hidden');
-  document.getElementById('pdf_viewer').src = ''; 
+  document.getElementById('pdf_viewer').src = '';
 });
