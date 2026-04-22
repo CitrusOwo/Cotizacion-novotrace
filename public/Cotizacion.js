@@ -99,24 +99,20 @@ function updateTotalsPreview() {
 // ========== PDF: genera el PDF directamente ==========
 function downloadPdf(filename, mode = 'save') {
   const element = document.querySelector('.sheet');
-  const previewContainer = document.getElementById('preview');
-  const previewWrap = document.querySelector('.preview-wrap');
+  const parent = element.parentNode; 
 
+  // Guardamos sus estilos originales
+  const origPosition = element.style.position;
+  const origTop = element.style.top;
+  const origLeft = element.style.left;
   const origMargin = element.style.margin;
-  const origOverflowPreview = previewContainer.style.overflow;
-  const origMaxHeightWrap = previewWrap.style.maxHeight;
-  const origOverflowWrap = previewWrap.style.overflow;
-  const origPaddingWrap = previewWrap.style.padding;
-  const origPaddingPreview = previewContainer.style.padding;
 
   window.scrollTo(0, 0);
-  previewWrap.style.maxHeight = 'none';      
-  previewWrap.style.overflow = 'visible';    
-  previewContainer.style.overflow = 'visible'; 
-  
-  previewWrap.style.padding = '0';
-  previewContainer.style.padding = '0';
-  element.style.margin = '0';                
+  document.body.appendChild(element); 
+  element.style.position = 'absolute';
+  element.style.top = '0';          
+  element.style.left = '0';          
+  element.style.margin = '0';        
 
   const imgs = element.querySelectorAll('img');
   const waits = Array.from(imgs).map(img =>
@@ -134,6 +130,7 @@ function downloadPdf(filename, mode = 'save') {
             scale: 2,          
             useCORS: true,
             width: 794,       
+            height: 1123,     
             windowWidth: 794,
             scrollX: 0,
             scrollY: 0
@@ -142,12 +139,11 @@ function downloadPdf(filename, mode = 'save') {
         };
 
         const restaurarDiseno = () => {
-          previewWrap.style.maxHeight = origMaxHeightWrap;
-          previewWrap.style.overflow = origOverflowWrap;
-          previewContainer.style.overflow = origOverflowPreview;
-          previewWrap.style.padding = origPaddingWrap;
-          previewContainer.style.padding = origPaddingPreview;
-          element.style.margin = origMargin; 
+          parent.appendChild(element);
+          element.style.position = origPosition;
+          element.style.top = origTop;
+          element.style.left = origLeft;
+          element.style.margin = origMargin;
         };
 
         if (mode === 'blob') {
