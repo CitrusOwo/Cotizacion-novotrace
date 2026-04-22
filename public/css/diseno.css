@@ -996,8 +996,8 @@ textarea {
 }
 
 .sheet {
-  width: 794px;
-  height: 1122px;
+  width: 794px !important;
+  height: 1123px !important;
   margin: 0 auto;
   padding: 40px;
   box-sizing: border-box;
