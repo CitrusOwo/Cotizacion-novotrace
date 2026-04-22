@@ -386,7 +386,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       .catch(err => console.error(err));
   });
 
-// ✅ DESCARGAR PDF DESDE HISTORIAL (Impresión nativa)
+  // ✅ DESCARGAR PDF DESDE HISTORIAL (Impresión nativa)
   document.addEventListener('click', async (e) => {
     const btn = e.target.closest('.download-btn');
     if (!btn) return;
@@ -397,13 +397,13 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     try {
       const id     = btn.dataset.id;
+      const number = btn.dataset.number;
 
       const [quoteData, itemsData] = await Promise.all([
         fetch(`/quotes/${id}`).then(r => r.json()),
         fetch(`/quotes/${id}/items`).then(r => r.json())
       ]);
 
-      // Rellenamos el formulario visualmente
       document.getElementById('quote_number').value  = quoteData.quote_number || '';
       document.getElementById('client_name').value   = quoteData.client_name  || '';
       document.getElementById('client_ruc').value    = quoteData.client_ruc   || '';
@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         document.title = `cot.001-${number}.novotrace`;
 
         window.print();
-        
+
         document.title = originalTitle;
         btn.innerHTML = originalText;
         btn.disabled = false;
