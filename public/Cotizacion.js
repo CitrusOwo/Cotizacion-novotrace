@@ -109,19 +109,25 @@ function downloadPdf(filename, mode = 'save') {
     }
   });
 
-  const clone = element.cloneNode(true);
-  
-  clone.style.position = 'fixed';
-  clone.style.top = '0';
-  clone.style.left = '0';
-  clone.style.width = '794px';
-  clone.style.height = '1122px';
-  clone.style.margin = '0';
-  clone.style.maxWidth = 'none'; 
-  clone.style.zIndex = '-9999';
-  document.body.appendChild(clone);
+  const printContainer = document.createElement('div');
+  printContainer.style.position = 'fixed'; // Flota sobre todo
+  printContainer.style.top = '0';
+  printContainer.style.left = '0';
+  printContainer.style.width = '794px';
+  printContainer.style.height = '1122px';
+  printContainer.style.overflow = 'hidden'; 
+  printContainer.style.background = 'white';
+  printContainer.style.zIndex = '-9999'; 
 
-  const imgs = clone.querySelectorAll('img');
+  const clone = element.cloneNode(true);
+  clone.style.margin = '0';
+  clone.style.width = '100%';
+  clone.style.height = '100%';
+  
+  printContainer.appendChild(clone);
+  document.body.appendChild(printContainer);
+
+  const imgs = printContainer.querySelectorAll('img');
   const waits = Array.from(imgs).map(img =>
     img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; })
   );
@@ -134,31 +140,27 @@ function downloadPdf(filename, mode = 'save') {
       html2canvas:  {
         scale: 2,          
         useCORS: true,
-        width: 794,      
-        height: 1122,   
-        windowWidth: 1200, 
         scrollX: 0,
         scrollY: 0
       },
-      jsPDF: { unit: 'px', format: [794, 1122], orientation: 'portrait' }
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     let result;
     if (mode === 'blob') {
-      result = html2pdf().set(opt).from(clone).toPdf().get('pdf').then(pdf => {
-        document.body.removeChild(clone); 
+      result = html2pdf().set(opt).from(printContainer).toPdf().get('pdf').then(pdf => {
+        document.body.removeChild(printContainer); 
         return pdf.output('blob');
       });
     } else {
-      result = html2pdf().set(opt).from(clone).save().then(() => {
-        document.body.removeChild(clone); 
+      result = html2pdf().set(opt).from(printContainer).save().then(() => {
+        document.body.removeChild(printContainer); 
       });
     }
 
     return result;
   });
 }
-
 function generatePreview() {
   const companyName     = document.getElementById('company_name')?.value || '';
   const companyRuc      = document.getElementById('company_ruc')?.value || '';
