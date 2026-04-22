@@ -99,66 +99,76 @@ function updateTotalsPreview() {
 // ========== PDF: genera el PDF directamente ==========
 function downloadPdf(filename, mode = 'save') {
   const element = document.querySelector('.sheet');
-  const parent = element.parentNode; 
 
-  // Guardamos sus estilos originales
-  const origPosition = element.style.position;
-  const origTop = element.style.top;
-  const origLeft = element.style.left;
-  const origMargin = element.style.margin;
+  // 👉 1. EL TRUCO DE ORO: Guardamos lo que escribiste para que no se borre al clonar
+  const inputs = element.querySelectorAll('input, textarea, select');
+  inputs.forEach(input => {
+    if (input.tagName === 'INPUT') {
+      input.setAttribute('value', input.value); // Fija el texto en inputs
+    } else if (input.tagName === 'TEXTAREA') {
+      input.innerHTML = input.value; // Fija el texto en textareas
+    }
+  });
 
-  window.scrollTo(0, 0);
-  document.body.appendChild(element); 
-  element.style.position = 'absolute';
-  element.style.top = '0';          
-  element.style.left = '0';          
-  element.style.margin = '0';        
+  // 👉 2. Creamos un clon exacto de tu hoja (ahora sí con todos tus datos)
+  const clone = element.cloneNode(true);
+  
+  // 👉 3. Creamos un "Estudio Fotográfico" invisible y perfecto
+  const printContainer = document.createElement('div');
+  printContainer.style.position = 'absolute';
+  printContainer.style.top = '0';
+  printContainer.style.left = '0';
+  printContainer.style.width = '794px';
+  printContainer.style.zIndex = '-9999'; // Escondido detrás de todo
+  printContainer.style.margin = '0';
+  printContainer.style.padding = '0';
 
-  const imgs = element.querySelectorAll('img');
+  // Ajustamos el clon para que encaje al milímetro
+  clone.style.margin = '0';
+  clone.style.width = '794px';
+  clone.style.height = '1122px'; // Alto EXACTO de una hoja A4
+
+  // Metemos el clon en el estudio, y el estudio a la página
+  printContainer.appendChild(clone);
+  document.body.appendChild(printContainer);
+
+  // Esperar a que los logos carguen
+  const imgs = printContainer.querySelectorAll('img');
   const waits = Array.from(imgs).map(img =>
     img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; })
   );
 
   return Promise.all(waits).then(() => {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        const opt = {
-          margin:       0,
-          filename:     filename,
-          image:        { type: 'jpeg', quality: 0.98 }, 
-          html2canvas:  {
-            scale: 2,          
-            useCORS: true,
-            width: 794,       
-            height: 1123,     
-            windowWidth: 794,
-            scrollX: 0,
-            scrollY: 0
-          },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
+    const opt = {
+      margin:       0,
+      filename:     filename,
+      image:        { type: 'jpeg', quality: 0.98 }, 
+      html2canvas:  {
+        scale: 2,          
+        useCORS: true,
+        width: 794,        // Ancho exacto A4
+        height: 1122,      // Alto exacto A4 (Esto mata a la 2da página)
+        windowWidth: 794,
+        scrollX: 0,
+        scrollY: 0
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
 
-        const restaurarDiseno = () => {
-          parent.appendChild(element);
-          element.style.position = origPosition;
-          element.style.top = origTop;
-          element.style.left = origLeft;
-          element.style.margin = origMargin;
-        };
+    // Tomamos la foto y luego eliminamos el clon para no dejar basura
+    let result;
+    if (mode === 'blob') {
+      result = html2pdf().set(opt).from(printContainer).toPdf().get('pdf').then(pdf => {
+        document.body.removeChild(printContainer); // Limpieza
+        return pdf.output('blob');
+      });
+    } else {
+      result = html2pdf().set(opt).from(printContainer).save().then(() => {
+        document.body.removeChild(printContainer); // Limpieza
+      });
+    }
 
-        if (mode === 'blob') {
-          html2pdf().set(opt).from(element).toPdf().get('pdf').then(pdf => {
-            restaurarDiseno();
-            resolve(pdf.output('blob'));
-          });
-        } else {
-          html2pdf().set(opt).from(element).save().then(() => {
-            restaurarDiseno();
-            resolve();
-          });
-        }
-      }, 150); 
-    });
+    return result;
   });
 }
 
