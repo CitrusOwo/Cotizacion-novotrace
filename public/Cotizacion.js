@@ -98,19 +98,24 @@ function updateTotalsPreview() {
 
 // ========== PDF: genera el PDF directamente ==========
 function downloadPdf(filename, mode = 'save') {
-  const element = document.querySelector('.sheet');
-  const previewContainer = document.getElementById('preview');
-
-  const originalMargin = element.style.margin;
-
-  window.scrollTo(0, 0);
-  previewContainer.scrollLeft = 0;
-  previewContainer.scrollTop = 0;
-  previewContainer.style.overflow = 'visible';
+  const originalElement = document.querySelector('.sheet');
   
-  element.style.margin = '0';
+  const clone = originalElement.cloneNode(true);
+  clone.style.margin = '0'; 
+  
+  const wrapper = document.createElement('div');
+  wrapper.style.position = 'absolute';
+  wrapper.style.top = '-9999px'; 
+  wrapper.style.left = '0';     
+  wrapper.style.width = '794px'; 
+  wrapper.style.height = '1122px'; 
+  wrapper.style.background = 'white';
+  wrapper.style.overflow = 'hidden'; 
+  
+  wrapper.appendChild(clone);
+  document.body.appendChild(wrapper);
 
-  const imgs = element.querySelectorAll('img');
+  const imgs = wrapper.querySelectorAll('img');
   const waits = Array.from(imgs).map(img =>
     img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; })
   );
@@ -119,29 +124,26 @@ function downloadPdf(filename, mode = 'save') {
     const opt = {
       margin:       0,
       filename:     filename,
-      image:        { type: 'jpeg', quality: 1 },
+      image:        { type: 'jpeg', quality: 1 }, 
       html2canvas:  {
-        scale: 2,     
+        scale: 2,          
         useCORS: true,
-        width: 794,
-        windowWidth: 794, 
-        scrollY: 0,
-        scrollX: 0
+        width: 794,      
+        height: 1122,     
+        windowWidth: 794
       },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     let result;
     if (mode === 'blob') {
-      result = html2pdf().set(opt).from(element).toPdf().get('pdf').then(pdf => {
-        previewContainer.style.overflow = 'auto'; 
-        element.style.margin = originalMargin;
+      result = html2pdf().set(opt).from(wrapper).toPdf().get('pdf').then(pdf => {
+        document.body.removeChild(wrapper); // Limpiamos la basura
         return pdf.output('blob');
       });
     } else {
-      result = html2pdf().set(opt).from(element).save().then(() => {
-        previewContainer.style.overflow = 'auto'; 
-        element.style.margin = originalMargin;
+      result = html2pdf().set(opt).from(wrapper).save().then(() => {
+        document.body.removeChild(wrapper); // Limpiamos la basura
       });
     }
 

@@ -997,13 +997,12 @@ textarea {
 
 .sheet {
   width: 794px;
-  min-height: 1123px; 
+  height: 1122px;
   margin: 0 auto;
   padding: 40px;
   box-sizing: border-box;
   background: white;
 }
-
 .sheet table {
   width: 100%;
   border-collapse: collapse;
