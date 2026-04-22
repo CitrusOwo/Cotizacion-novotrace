@@ -119,14 +119,16 @@ function getSheetClone() {
   const original = document.querySelector('.sheet');
   const clone = original.cloneNode(true);
   clone.style.cssText = `
-    position: fixed;
-    top: -9999px;
+    position: absolute;
+    top: 0;
     left: 0;
     width: 794px;
     background: white;
     padding: 24px 32px;
     box-sizing: border-box;
-    z-index: -1;
+    z-index: -9999;
+    pointer-events: none;
+    opacity: 1;
   `;
   document.body.appendChild(clone);
   return clone;
