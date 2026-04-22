@@ -106,13 +106,12 @@ function downloadPdf(filename, mode = 'save') {
   // Wrapper fuera de pantalla con ancho A4 exacto
   const wrapper = document.createElement('div');
   wrapper.style.cssText = `
-    position: absolute;
-    left: -${A4_W + 100}px;
-    top: 0;
-    width: ${A4_W}px;
-    background: white;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  `;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 210mm;
+  background: white;
+`;
   wrapper.innerHTML = sheetEl.outerHTML;
   document.body.appendChild(wrapper);
 
@@ -139,13 +138,11 @@ function downloadPdf(filename, mode = 'save') {
       filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: {
-      scale: 2,
-      useCORS: true,
-      width: A4_W,
-      windowWidth: A4_W
+      scale: 1,
+      useCORS: true
       },
       jsPDF: { 
-      unit: 'px', 
+      unit: 'mm', 
       format: 'a4', 
       orientation: 'portrait' 
       }
