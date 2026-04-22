@@ -291,8 +291,8 @@ textarea {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
   border-bottom: 2px solid var(--border-color);
 }
 
@@ -352,7 +352,7 @@ textarea {
 .client-data-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 24px;
+  margin-bottom: 15px;
   border: 1px solid var(--border-color);
 }
 
@@ -477,7 +477,7 @@ textarea {
 }
 
 .items-section {
-  margin: 24px 0;
+  margin: 15px 0;
 }
 
 /* ========== TABLA DE PRODUCTOS ========== */
@@ -547,8 +547,8 @@ textarea {
 
 /* ========== NOTAS ========== */
 .notes-section {
-  margin-top: 24px;
-  padding: 16px;
+  margin-top: 15px;
+  padding: 12px 16px;
   background: var(--bg-light);
   border-radius: 4px;
   border-left: 3px solid var(--text-dark);
@@ -571,9 +571,9 @@ textarea {
 /* ========== MEDIOS DE PAGO ========== */
 .payment-display {
   border: 1px solid var(--border-color);
-  padding: 24px;
+  padding: 16px 24px;
   border-radius: 4px;
-  margin-top: 30px;
+  margin-top: 15px;
   page-break-inside: avoid;
   background: var(--bg-white);
 }
@@ -999,7 +999,7 @@ textarea {
   width: 794px !important;
   min-height: 1123px !important;
   margin: 0 auto;
-  padding: 40px;
+  padding: 25px 40px;
   box-sizing: border-box;
   background: white;
 }
