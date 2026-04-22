@@ -103,9 +103,9 @@ function downloadPdf(filename, mode = 'save') {
   const inputs = element.querySelectorAll('input, textarea, select');
   inputs.forEach(input => {
     if (input.tagName === 'INPUT') {
-      input.setAttribute('value', input.value);
+      input.setAttribute('value', input.value); 
     } else if (input.tagName === 'TEXTAREA') {
-      input.innerHTML = input.value;
+      input.innerHTML = input.value; 
     }
   });
 
@@ -114,8 +114,11 @@ function downloadPdf(filename, mode = 'save') {
   clone.style.position = 'fixed';
   clone.style.top = '0';
   clone.style.left = '0';
+  clone.style.width = '794px';
+  clone.style.height = '1122px';
   clone.style.margin = '0';
-  clone.style.zIndex = '-9999'; 
+  clone.style.maxWidth = 'none'; 
+  clone.style.zIndex = '-9999';
   document.body.appendChild(clone);
 
   const imgs = clone.querySelectorAll('img');
@@ -131,8 +134,11 @@ function downloadPdf(filename, mode = 'save') {
       html2canvas:  {
         scale: 2,          
         useCORS: true,
-        scrollY: 0,
-        scrollX: 0
+        width: 794,      
+        height: 1122,   
+        windowWidth: 1200, 
+        scrollX: 0,
+        scrollY: 0
       },
       jsPDF: { unit: 'px', format: [794, 1122], orientation: 'portrait' }
     };
@@ -145,7 +151,7 @@ function downloadPdf(filename, mode = 'save') {
       });
     } else {
       result = html2pdf().set(opt).from(clone).save().then(() => {
-        document.body.removeChild(clone);
+        document.body.removeChild(clone); 
       });
     }
 
