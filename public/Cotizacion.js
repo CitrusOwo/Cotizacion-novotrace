@@ -179,12 +179,24 @@ function generatePreview() {
       </table>
       
       <div class="totals-box">
-        <div class="total-row"><span>Subtotal</span><span>${formatMoney(totals.subtotal, curr)}</span></div>
-        <div class="total-row"><span>Descuento</span><span style="color:#dc3545">-${currencySymbols[curr] || '$'} 0.00</span></div>
-        <div class="total-row"><span>IGV (18%)</span><span>${formatMoney(totals.igv, curr)}</span></div>
-        <div class="total-row final"><span>TOTAL</span><span>${formatMoney(totals.total, curr)}</span></div>
+        <div class="total-row">
+          <span class="total-label">Subtotal</span>
+          <span class="total-value">${formatMoney(totals.subtotal, curr)}</span>
+        </div>
+        <div class="total-row">
+          <span class="total-label">Descuento</span>
+          <span class="total-value discount">-${currencySymbols[curr] || '$'} 0.00</span>
+        </div>
+        <div class="total-row">
+          <span class="total-label">IGV (18%)</span>
+          <span class="total-value">${formatMoney(totals.igv, curr)}</span>
+        </div>
+        <div class="total-divider"></div>
+        <div class="total-row final">
+          <span class="total-label">TOTAL</span>
+          <span class="total-value">${formatMoney(totals.total, curr)}</span>
+        </div>
       </div>
-    </div>
 
     ${commercialNotes ? `
     <div class="notes-section">
