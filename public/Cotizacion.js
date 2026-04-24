@@ -206,25 +206,25 @@ function generatePreview() {
     </div>` : ''}
 
     <div class="payment-display">
-      <h3>Cuentas para pagos:</h3>
+      <h3 style="font-size: 13px; text-align: center; margin-bottom: 10px;">CUENTAS PARA PAGOS:</h3>
       <table class="payment-table">
-        <thead><tr><th style="width:100px">BANCO</th><th>DATOS DE CUENTA</th></tr></thead>
         <tbody>
           <tr>
-            <td class="bank-logo"><img src="/imagenes/BCP.png" alt="BCP" /></td>
-            <td class="account-data">
+            <td class="bank-logo" style="width: 80px;"><img src="/imagenes/BCP.png" alt="BCP" /></td>
+            <td style="text-align: left; padding-left: 15px;">
               <div><strong>Cta. Soles:</strong> 194-91893576-0-91</div>
               <div><strong>Cta. Dólares:</strong> 194-91893582-0-91</div>
             </td>
           </tr>
           <tr>
             <td class="bank-logo"><img src="/imagenes/BBVA.png" alt="BBVA" /></td>
-            <td class="account-data"><div><strong>Cuenta:</strong> 0011-0323-0200559998-36</div></td>
+            <td style="text-align: left; padding-left: 15px;">
+              <div><strong>Cuenta:</strong> 0011-0323-0200559998-36</div>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
-  </div>
   `;
 }
 
