@@ -982,3 +982,84 @@ textarea {
     print-color-adjust: exact !important;
   }
 }
+
+/* =========================================
+   ESTILO DE DATOS DEL CLIENTE (BASADO EN IMAGEN)
+   ========================================= */
+.client-info-container {
+    width: 100%;
+    margin-bottom: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #f8f9fa; /* Fondo gris claro */
+    font-size: 11px;
+}
+
+.client-info-row {
+    display: flex;
+    width: 100%;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.client-info-row:last-child {
+    border-bottom: none;
+}
+
+.info-item {
+    flex: 1;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+}
+
+.info-item:not(:last-child) {
+    border-right: 1px solid #dee2e6;
+}
+
+.info-label {
+    font-weight: bold;
+    color: #495057;
+    margin-right: 8px;
+    min-width: 65px; /* Alinea las etiquetas */
+}
+
+.info-data {
+    color: #212529;
+}
+
+/* =========================================
+   NUEVO ESTILO TABLA DE PRODUCTOS
+   ========================================= */
+.items {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #dee2e6;
+    font-size: 11px;
+}
+
+.items thead th {
+    background-color: #f1f3f5 !important; /* Cabecera gris */
+    color: #333 !important;
+    font-weight: bold;
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    text-transform: uppercase;
+}
+
+.items tbody td {
+    padding: 8px 10px;
+    border: 1px solid #dee2e6;
+    color: #212529;
+}
+
+/* Para mantener los colores al imprimir */
+@media print {
+    .items thead th {
+        background-color: #f1f3f5 !important;
+        -webkit-print-color-adjust: exact;
+    }
+    .client-info-container {
+        background-color: #f8f9fa !important;
+        -webkit-print-color-adjust: exact;
+    }
+}

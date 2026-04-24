@@ -149,37 +149,38 @@ function generatePreview() {
         <div class="quote-box-number">${quoteNumber}</div>
       </div>
     </div>
-    <table class="client-data-table">
-      <tbody>
-        <tr>
-          <td class="label-cell">FECHA:</td><td class="data-cell">${formattedDate}</td>
-          <td class="label-cell">DIRECCIÓN:</td><td class="data-cell">${escapeHtml(clientAddress)}</td>
-        </tr>
-        <tr>
-          <td class="label-cell">RUC:</td><td class="data-cell">${escapeHtml(clientRuc)}</td>
-          <td class="label-cell">CIUDAD:</td><td class="data-cell">${escapeHtml(clientCity)}</td>
-        </tr>
-        <tr>
-          <td class="label-cell">CLIENTE:</td><td class="data-cell">${escapeHtml(clientName)}</td>
-          <td class="label-cell">TELEFONO:</td><td class="data-cell">${escapeHtml(clientPhone)}</td>
-        </tr>
-        <tr>
-          <td class="label-cell">E-MAIL:</td><td class="data-cell" colspan="3">${escapeHtml(clientEmail)}</td>
-        </tr>
-      </tbody>
-    </table>
+
+    <div class="client-info-container">
+        <div class="client-info-row">
+            <div class="info-item"><span class="info-label">FECHA:</span> <span class="info-data">${formattedDate}</span></div>
+            <div class="info-item"><span class="info-label">DNI/RUC:</span> <span class="info-data">${escapeHtml(clientRuc)}</span></div>
+        </div>
+        <div class="client-info-row">
+            <div class="info-item"><span class="info-label">CLIENTE:</span> <span class="info-data">${escapeHtml(clientName)}</span></div>
+        </div>
+        <div class="client-info-row">
+            <div class="info-item"><span class="info-label">DIRECCIÓN:</span> <span class="info-data">${escapeHtml(clientAddress)}</span></div>
+        </div>
+        <div class="client-info-row">
+            <div class="info-item"><span class="info-label">CIUDAD:</span> <span class="info-data">${escapeHtml(clientCity)}</span></div>
+            <div class="info-item"><span class="info-label">TELF:</span> <span class="info-data">${escapeHtml(clientPhone)}</span></div>
+            <div class="info-item"><span class="info-label">E-MAIL:</span> <span class="info-data">${escapeHtml(clientEmail)}</span></div>
+        </div>
+    </div>
+
     <div class="items-section">
       <table class="items">
         <thead>
           <tr>
-            <th>Descripción</th>
-            <th style="width:100px;text-align:center">Cantidad</th>
-            <th style="width:130px;text-align:right">Precio Unit.</th>
-            <th style="width:130px;text-align:right">Subtotal</th>
+            <th>DESCRIPCIÓN</th>
+            <th style="width:100px;text-align:center">CANTIDAD</th>
+            <th style="width:130px;text-align:right">PRECIO UNIT.</th>
+            <th style="width:130px;text-align:right">SUBTOTAL</th>
           </tr>
         </thead>
         <tbody>${itemsHtml}</tbody>
       </table>
+      
       <div class="totals-box">
         <div class="total-row"><span>Subtotal</span><span>${formatMoney(totals.subtotal, curr)}</span></div>
         <div class="total-row"><span>Descuento</span><span style="color:#dc3545">-${currencySymbols[curr] || '$'} 0.00</span></div>
@@ -187,37 +188,16 @@ function generatePreview() {
         <div class="total-row final"><span>TOTAL</span><span>${formatMoney(totals.total, curr)}</span></div>
       </div>
     </div>
+
     ${commercialNotes ? `
     <div class="notes-section">
       <h3>TÉRMINOS Y CONDICIONES:</h3>
       ${commercialNotes.split('\n').map(line => line.trim() ? `<p>• ${escapeHtml(line)}</p>` : '').join('')}
       <p style="margin-top:12px"><strong>Validez de la oferta:</strong> ${validityDays} días desde la fecha de emisión.</p>
-    </div>` : `
-    <div class="notes-section">
-      <h3>TÉRMINOS Y CONDICIONES:</h3>
-      <p>• Tiempo de entrega: inmediato sujeto a stock.</p>
-      <p>• Estaremos a disposición para cualquier aclaración que sea necesaria.</p>
-      <p style="margin-top:12px"><strong>Validez de la oferta:</strong> ${validityDays} días desde la fecha de emisión.</p>
-    </div>`}
+    </div>` : ''}
+    
     <div class="payment-display">
-      <h3>Cuentas para pagos:</h3>
-      <table class="payment-table">
-        <thead><tr><th style="width:100px">BANCO</th><th>DATOS DE CUENTA</th></tr></thead>
-        <tbody>
-          <tr>
-            <td class="bank-logo"><img src="/imagenes/BCP.png" alt="BCP" /></td>
-            <td class="account-data">
-              <div><strong>Cta. Soles:</strong> 194-91893576-0-91</div>
-              <div><strong>Cta. Dólares:</strong> 194-91893582-0-91</div>
-            </td>
-          </tr>
-          <tr>
-            <td class="bank-logo"><img src="/imagenes/BBVA.png" alt="BBVA" /></td>
-            <td class="account-data"><div><strong>Cuenta:</strong> 0011-0323-0200559998-36</div></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+        </div>
   </div>
   `;
 }
