@@ -127,9 +127,6 @@ function generatePreview() {
         <td style="text-align:right;font-weight:600">${formatMoney(lineTotal, curr)}</td>
       </tr>`;
   });
-  if (items.length === 0) {
-    itemsHtml = '<tr><td colspan="4" style="text-align:center;color:#999;padding:30px">No hay items agregados</td></tr>';
-  }
 
   document.getElementById('preview').innerHTML = `
   <div class="sheet">
@@ -195,9 +192,26 @@ function generatePreview() {
       ${commercialNotes.split('\n').map(line => line.trim() ? `<p>• ${escapeHtml(line)}</p>` : '').join('')}
       <p style="margin-top:12px"><strong>Validez de la oferta:</strong> ${validityDays} días desde la fecha de emisión.</p>
     </div>` : ''}
-    
+
     <div class="payment-display">
-        </div>
+      <h3>Cuentas para pagos:</h3>
+      <table class="payment-table">
+        <thead><tr><th style="width:100px">BANCO</th><th>DATOS DE CUENTA</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="bank-logo"><img src="/imagenes/BCP.png" alt="BCP" /></td>
+            <td class="account-data">
+              <div><strong>Cta. Soles:</strong> 194-91893576-0-91</div>
+              <div><strong>Cta. Dólares:</strong> 194-91893582-0-91</div>
+            </td>
+          </tr>
+          <tr>
+            <td class="bank-logo"><img src="/imagenes/BBVA.png" alt="BBVA" /></td>
+            <td class="account-data"><div><strong>Cuenta:</strong> 0011-0323-0200559998-36</div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
   `;
 }
