@@ -224,12 +224,12 @@ function generatePreview() {
             <tr>
             <td class="bank-logo">
             <img src="/imagenes/BBVA.png" alt="BBVA" />
-          </tr>
-          <td style="text-align: left; padding-left: 15px;">
-          <div><strong>Cuenta:</strong> 0011-0323-0200559998</div>
-          <div><strong>CCI:</strong> 011-323-000200559998-36</div>
+            </td>
+              <td style="text-align: left; padding-left: 15px;">
+              <div><strong>Cuenta:</strong> 0011-0323-0200559998</div>
+              <div><strong>CCI:</strong> 011-323-000200559998-36</div>
           </td>
-        </tr>
+          </tr>
         </tbody>
       </table>
     </div>
