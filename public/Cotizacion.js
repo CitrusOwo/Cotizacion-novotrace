@@ -210,18 +210,26 @@ function generatePreview() {
       <table class="payment-table">
         <tbody>
           <tr>
-            <td class="bank-logo" style="width: 80px;"><img src="/imagenes/BCP.png" alt="BCP" /></td>
-            <td style="text-align: left; padding-left: 15px;">
+            <td class="bank-logo" style="width: 80px;">
+            <img src="/imagenes/BCP.png" alt="BCP" />
+              </td>
+              <td style="text-align: left; padding-left: 15px;">
               <div><strong>Cta. Soles:</strong> 194-91893576-0-91</div>
-              <div><strong>Cta. Dólares:</strong> 194-91893582-0-91</div>
-            </td>
+              <div><strong>CCI Soles:</strong> 002-194-191893576091-90</div>
+          
+            <div style="margin-top:5px;"><strong>Cta. Dólares:</strong> 194-91893582-0-91</div>
+            <div><strong>CCI Dólares:</strong> 002-194-191893582197-97</div>
+              </td>
+            </tr>
+            <tr>
+            <td class="bank-logo">
+            <img src="/imagenes/BBVA.png" alt="BBVA" />
           </tr>
-          <tr>
-            <td class="bank-logo"><img src="/imagenes/BBVA.png" alt="BBVA" /></td>
-            <td style="text-align: left; padding-left: 15px;">
-              <div><strong>Cuenta:</strong> 0011-0323-0200559998-36</div>
-            </td>
-          </tr>
+          <td style="text-align: left; padding-left: 15px;">
+          <div><strong>Cuenta:</strong> 0011-0323-0200559998</div>
+          <div><strong>CCI:</strong> 011-323-000200559998-36</div>
+          </td>
+        </tr>
         </tbody>
       </table>
     </div>
