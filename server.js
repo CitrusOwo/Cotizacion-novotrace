@@ -10,22 +10,25 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ===== PostgreSQL =====
+// ===== PostgreSQL (FIX RENDER) =====
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
   max: 5,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000
+  idleTimeoutMillis: 20000,
+  connectionTimeoutMillis: 10000,
+  keepAlive: true
 });
 
+// 🔥 evita crash del servidor
 pool.on('error', (err) => {
-  console.error('Error inesperado en PostgreSQL pool:', err);
+  console.error('❌ DB Pool Error:', err.message);
 });
 
+// 🔥 keep alive real para Render (EVITA CAÍDA)
 setInterval(() => {
   pool.query('SELECT 1').catch(() => {});
-}, 25000);
+}, 20000);
 
 // ===== TEST DB =====
 app.get('/test-db', async (req, res) => {
@@ -34,37 +37,35 @@ app.get('/test-db', async (req, res) => {
     res.json({ ok: true, time: result.rows[0] });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ ok: false });
+    res.status(500).json({ ok: false, error: err.message });
   }
 });
 
-// ===== 👉 OBTENER SIGUIENTE NÚMERO (solo visual) =====
+// ===== NEXT QUOTE NUMBER =====
 app.get('/next-quote-number', async (req, res) => {
   try {
-    // Convierte el texto a entero para buscar el máximo real
     const result = await pool.query(
       `SELECT COALESCE(MAX(CAST(quote_number AS INTEGER)), 390) + 1 AS next FROM quotes`
     );
     res.json({ quote_number: result.rows[0].next });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Error obteniendo número' });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// ===== GUARDAR =====
+// ===== SAVE =====
 app.post('/save', async (req, res) => {
   const client = await pool.connect();
 
   try {
     const {
-      company_name, client_name, client_ruc, client_email, 
+      company_name, client_name, client_ruc, client_email,
       client_phone, client_city, total, items
     } = req.body;
 
     await client.query('BEGIN');
 
-    // Insertamos calculando el número máximo en tiempo real
     const result = await client.query(
       `INSERT INTO quotes 
       (quote_number, company_name, client_name, client_ruc, client_email, client_phone, client_city, total)
@@ -88,6 +89,7 @@ app.post('/save', async (req, res) => {
     }
 
     await client.query('COMMIT');
+
     res.json({ ok: true, quote_number: newNumber });
 
   } catch (err) {
@@ -99,21 +101,21 @@ app.post('/save', async (req, res) => {
   }
 });
 
-// ===== LISTAR =====
+// ===== LIST =====
 app.get('/quotes', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT id, quote_number, company_name, client_name, 
-             client_ruc, client_email, client_phone, client_city, 
+      SELECT id, quote_number, company_name, client_name,
+             client_ruc, client_email, client_phone, client_city,
              total, currency, created_at
       FROM quotes
-      ORDER BY quote_number DESC
+      ORDER BY id DESC
     `);
 
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.json([]);
+    res.status(500).json([]);
   }
 });
 
@@ -129,20 +131,24 @@ app.get('/quotes/:id/items', async (req, res) => {
 
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al obtener items' });
+    res.status(500).json({ error: err.message });
   }
 });
 
+// ===== GET ONE =====
 app.get('/quotes/:id', async (req, res) => {
-  const result = await pool.query(
-    `SELECT * FROM quotes WHERE id = $1`,
-    [req.params.id]
-  );
-  res.json(result.rows[0]);
+  try {
+    const result = await pool.query(
+      `SELECT * FROM quotes WHERE id = $1`,
+      [req.params.id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// ===== ELIMINAR =====
+// ===== DELETE =====
 app.delete('/quotes/:id', async (req, res) => {
   const client = await pool.connect();
 
@@ -155,16 +161,16 @@ app.delete('/quotes/:id', async (req, res) => {
     await client.query('COMMIT');
 
     res.json({ ok: true });
+
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error(err);
     res.status(500).json({ error: err.message });
   } finally {
     client.release();
   }
 });
 
-// ===== FRONTEND =====
+// ===== FRONT =====
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -172,5 +178,5 @@ app.use((req, res) => {
 // ===== SERVER =====
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
+  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
 });
