@@ -13,8 +13,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ===== PostgreSQL =====
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
+  max: 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000
 });
+
+pool.on('error', (err) => {
+  console.error('Error inesperado en PostgreSQL pool:', err);
+});
+
+setInterval(() => {
+  pool.query('SELECT 1').catch(() => {});
+}, 25000);
 
 // ===== TEST DB =====
 app.get('/test-db', async (req, res) => {
