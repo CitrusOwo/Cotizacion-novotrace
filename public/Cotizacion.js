@@ -24,6 +24,7 @@ let items = [];
 const LOGO_PATH = '/imagenes/Recurso 43.png';
 let saveTimeout;
 let lastSavedQuote = '';
+let discountPercent = 0;
 
 const currencySymbols = { 'USD': '$', 'PEN': 'S/', 'EUR': '€' };
 
@@ -82,8 +83,13 @@ function renderItemsTable() {
 
 function calculateTotals() {
   const subtotal = items.reduce((s, it) => s + (Number(it.qty || 0) * Number(it.price || 0)), 0);
-  const igv = subtotal * 0.18;
-  return { subtotal, igv, total: subtotal + igv };
+  // Obtener el descuento del input
+  const discountInput = document.getElementById('discount_percent');
+  discountPercent = discountInput ? parseFloat(discountInput.value) || 0 : 0;
+  const discountAmount = subtotal * (discountPercent / 100);
+  const subtotalWithDiscount = subtotal - discountAmount;
+  const igv = subtotalWithDiscount * 0.18;
+  return { subtotal, discountAmount, subtotalWithDiscount, igv, total: subtotalWithDiscount + igv };
 }
 
 function updateTotalsPreview() {
@@ -91,6 +97,10 @@ function updateTotalsPreview() {
   const curr = getCurrency();
   document.getElementById('totals_preview').innerHTML = `
     <div class="totals-preview-row"><span>Subtotal:</span><span>${formatMoney(totals.subtotal, curr)}</span></div>
+    <div class="totals-preview-row" style="color:${totals.discountAmount > 0 ? '#dc3545' : '#666'}">
+      <span>Descuento (${discountPercent}%):</span>
+      <span>-${formatMoney(totals.discountAmount, curr)}</span>
+    </div>
     <div class="totals-preview-row"><span>IGV (18%):</span><span>${formatMoney(totals.igv, curr)}</span></div>
     <div class="totals-preview-row total"><span>TOTAL:</span><span>${formatMoney(totals.total, curr)}</span></div>
   `;
@@ -183,9 +193,9 @@ function generatePreview() {
           <span class="total-label">Subtotal</span>
           <span class="total-value">${formatMoney(totals.subtotal, curr)}</span>
         </div>
-        <div class="total-row">
-          <span class="total-label">Descuento</span>
-          <span class="total-value discount">-${currencySymbols[curr] || '$'} 0.00</span>
+        <div class="total-row" style="color:${totals.discountAmount > 0 ? '#dc3545' : 'inherit'}">
+          <span class="total-label">Descuento (${discountPercent}%)</span>
+          <span class="total-value discount">-${formatMoney(totals.discountAmount, curr)}</span>
         </div>
         <div class="total-row">
           <span class="total-label">IGV (18%)</span>
@@ -250,6 +260,7 @@ function saveNow() {
     client_city:  document.getElementById('client_city')?.value  || '',
     total: calculateTotals().total,
     currency: getCurrency(),
+    discount_percent: discountPercent,
     items: items
   };
 
@@ -274,6 +285,10 @@ async function newQuote() {
   document.getElementById('client_city').value    = '';
   document.getElementById('client_phone').value   = '';
   document.getElementById('client_email').value   = '';
+  // Resetear descuento
+  const discountInput = document.getElementById('discount_percent');
+  if (discountInput) discountInput.value = 0;
+  discountPercent = 0;
   renderItemsTable();
   updateTotalsPreview();
 }
@@ -290,6 +305,34 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('commercial_notes').addEventListener('input', (e) => {
     localStorage.setItem('terms', e.target.value);
   });
+
+  // Agregar el campo de descuento en el DOM dinámicamente
+  const totalsPreview = document.getElementById('totals_preview');
+  const discountRow = document.createElement('div');
+  discountRow.className = 'totals-preview-row';
+  discountRow.id = 'discount_row';
+  discountRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:4px 0;';
+  discountRow.innerHTML = `
+    <span style="font-weight:500;">Descuento:</span>
+    <span style="display:flex;align-items:center;gap:4px;">
+      <input type="number" id="discount_percent" min="0" max="100" step="1" value="0" style="width:60px;border:1px solid #ddd;border-radius:4px;padding:4px;text-align:center;font-weight:600;background:transparent;" />
+      <span style="font-size:13px;color:#666;">%</span>
+    </span>
+  `;
+  totalsPreview.parentNode.insertBefore(discountRow, totalsPreview);
+
+  // Evento para el descuento
+  const discountInput = document.getElementById('discount_percent');
+  if (discountInput) {
+    discountInput.addEventListener('input', function() {
+      // Validar que no sea mayor a 100
+      if (this.value > 100) this.value = 100;
+      if (this.value < 0) this.value = 0;
+      discountPercent = parseFloat(this.value) || 0;
+      updateTotalsPreview();
+      if (document.getElementById('auto_update')?.checked) generatePreview();
+    });
+  }
 
   itemsBody.addEventListener('input', function (e) {
     const el = e.target;
@@ -426,6 +469,15 @@ document.addEventListener('DOMContentLoaded', async function () {
       document.getElementById('client_city').value   = quoteData.client_city  || '';
       if (document.getElementById('client_address'))
         document.getElementById('client_address').value = quoteData.client_address || '';
+
+      // Cargar el descuento si existe
+      if (quoteData.discount_percent !== undefined) {
+        const discountInput = document.getElementById('discount_percent');
+        if (discountInput) {
+          discountInput.value = quoteData.discount_percent;
+          discountPercent = quoteData.discount_percent;
+        }
+      }
 
       items = itemsData.map(it => ({ id: crypto.randomUUID(), desc: it.desc, qty: it.qty, price: it.price }));
 

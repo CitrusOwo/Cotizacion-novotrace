@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ===== PostgreSQL (FIX RENDER) =====
+// ===== PostgreSQL =====
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
@@ -25,7 +25,7 @@ pool.on('error', (err) => {
   console.error('❌ DB Pool Error:', err.message);
 });
 
-// 🔥 keep alive real para Render (EVITA CAÍDA)
+// 🔥 keep alive real para Render
 setInterval(() => {
   pool.query('SELECT 1').catch(() => {});
 }, 20000);
@@ -61,20 +61,24 @@ app.post('/save', async (req, res) => {
   try {
     const {
       company_name, client_name, client_ruc, client_email,
-      client_phone, client_city, total, items
+      client_phone, client_city, total, currency,
+      discount_percent,  // 👈 NUEVO: recibir el descuento
+      items
     } = req.body;
 
     await client.query('BEGIN');
 
     const result = await client.query(
       `INSERT INTO quotes 
-      (quote_number, company_name, client_name, client_ruc, client_email, client_phone, client_city, total)
+      (quote_number, company_name, client_name, client_ruc, client_email, 
+       client_phone, client_city, total, currency, discount_percent)  -- 👈 NUEVO campo
       VALUES (
         (SELECT COALESCE(MAX(CAST(quote_number AS INTEGER)), 390) + 1 FROM quotes),
-        $1,$2,$3,$4,$5,$6,$7
+        $1,$2,$3,$4,$5,$6,$7,$8,$9
       )
       RETURNING id, quote_number`,
-      [company_name, client_name, client_ruc, client_email, client_phone, client_city, total]
+      [company_name, client_name, client_ruc, client_email, 
+       client_phone, client_city, total, currency || 'USD', discount_percent || 0]  // 👈 NUEVO
     );
 
     const quoteId = result.rows[0].id;
@@ -107,7 +111,7 @@ app.get('/quotes', async (req, res) => {
     const result = await pool.query(`
       SELECT id, quote_number, company_name, client_name,
              client_ruc, client_email, client_phone, client_city,
-             total, currency, created_at
+             total, currency, discount_percent, created_at  -- 👈 NUEVO campo
       FROM quotes
       ORDER BY id DESC
     `);
